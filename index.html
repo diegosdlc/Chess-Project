@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bandas del Tablero</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="title-panel">
+        <p class="eyebrow">PROTOTIPO TÁCTICO</p>
+        <h1>Bandas del Tablero</h1>
+        <p class="subtitle">Domina el campo, derrota a tus rivales y decide quién merece unirse a tu banda.</p>
+      </section>
+
+      <section class="game-layout" aria-label="Partida táctica">
+        <aside class="side-panel roster-panel">
+          <div class="panel-heading">
+            <p class="eyebrow">TU BANDA</p>
+            <span id="turn-badge" class="turn-badge">Tu turno</span>
+          </div>
+          <div id="roster" class="roster" aria-live="polite"></div>
+          <button id="end-turn" class="primary-button" type="button">Terminar turno</button>
+          <button id="restart" class="ghost-button" type="button">Nueva escaramuza</button>
+        </aside>
+
+        <section class="battlefield-wrap">
+          <div class="objective-bar">
+            <div>
+              <span class="objective-label">OBJETIVO</span>
+              <strong id="objective">Somete o elimina a la banda rival.</strong>
+            </div>
+            <div class="capture-count"><span>PRISIONEROS</span><strong id="prisoner-count">0</strong></div>
+          </div>
+          <div id="board" class="board" role="grid" aria-label="Campo de batalla de ocho por ocho"></div>
+          <p id="status" class="status" aria-live="polite">Selecciona una unidad de tu banda.</p>
+        </section>
+
+        <aside class="side-panel detail-panel">
+          <p class="eyebrow">UNIDAD ACTIVA</p>
+          <div id="unit-detail" class="unit-detail empty">Selecciona una unidad para ver sus acciones.</div>
+          <div class="legend">
+            <p><i class="legend-dot move"></i> Movimiento</p>
+            <p><i class="legend-dot attack"></i> Ataque</p>
+            <p><i class="legend-dot capture"></i> Captura</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <dialog id="result-dialog" class="result-dialog">
+      <div id="result-content"></div>
+    </dialog>
+    <script src="game.js"></script>
+  </body>
+</html>
