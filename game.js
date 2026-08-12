@@ -1,23 +1,17 @@
 const board = document.querySelector('#board');
-const roster = document.querySelector('#roster');
-const detail = document.querySelector('#unit-detail');
-const status = document.querySelector('#status');
-const restart = document.querySelector('#restart');
-const turnBadge = document.querySelector('#turn-badge');
-const prisonerCount = document.querySelector('#prisoner-count');
 const resultDialog = document.querySelector('#result-dialog');
 const resultContent = document.querySelector('#result-content');
 
-const TEAM_LABEL = { player: 'Jugador blanco', enemy: 'Jugador negro' };
+const TEAM_LABEL = { player: 'Blancas', enemy: 'Negras' };
 const NEXT_TEAM = { player: 'enemy', enemy: 'player' };
 
 const baseUnits = [
-  { id:'warden', team:'player', name:'Guardia del Roble', type:'Torre', icon:'♜', x:1, y:6, range:'orthogonal', ability:'Baluarte', description:'Se mueve en líneas rectas por toda la longitud disponible del tablero.' },
-  { id:'seer', team:'player', name:'Vidente de Musgo', type:'Alfil', icon:'♝', x:3, y:7, range:'diagonal', ability:'Enredadera', description:'Se mueve en diagonal por toda la longitud disponible del tablero.' },
-  { id:'scout', team:'player', name:'Exploradora', type:'Peón arquero', icon:'♟', x:5, y:6, range:'pawn', ability:'Red de caza', description:'Avanza una casilla hacia el bando negro y captura en diagonal.' },
-  { id:'brute', team:'enemy', name:'Bruto de Ceniza', type:'Torre', icon:'♜', x:6, y:1, range:'orthogonal', ability:'Carga brutal', description:'Se mueve en líneas rectas por toda la longitud disponible del tablero.' },
-  { id:'hexer', team:'enemy', name:'Tejedora Escarlata', type:'Alfil', icon:'♝', x:4, y:0, range:'diagonal', ability:'Maldición', description:'Se mueve en diagonal por toda la longitud disponible del tablero.' },
-  { id:'raider', team:'enemy', name:'Saqueador', type:'Peón', icon:'♟', x:2, y:1, range:'pawn', ability:'Golpe bajo', description:'Avanza una casilla hacia el bando blanco y captura en diagonal.' }
+  { id:'warden', team:'player', name:'Guardia del Roble', type:'Torre', icon:'♜', x:1, y:6, range:'orthogonal' },
+  { id:'seer', team:'player', name:'Vidente de Musgo', type:'Alfil', icon:'♝', x:3, y:7, range:'diagonal' },
+  { id:'scout', team:'player', name:'Exploradora', type:'Peón', icon:'♟', x:5, y:6, range:'pawn' },
+  { id:'brute', team:'enemy', name:'Bruto de Ceniza', type:'Torre', icon:'♜', x:6, y:1, range:'orthogonal' },
+  { id:'hexer', team:'enemy', name:'Tejedora Escarlata', type:'Alfil', icon:'♝', x:4, y:0, range:'diagonal' },
+  { id:'raider', team:'enemy', name:'Saqueador', type:'Peón', icon:'♟', x:2, y:1, range:'pawn' }
 ];
 
 let units;
@@ -41,11 +35,6 @@ function reset() {
   pendingCapture = null;
   if (resultDialog.open) resultDialog.close();
   render();
-  setStatus('Turno del jugador blanco. Selecciona una pieza. Verde = movimiento; dorado = captura.');
-}
-
-function setStatus(message) {
-  status.textContent = message;
 }
 
 function squareOption(unit, x, y) {
@@ -122,26 +111,18 @@ function leaveOrigin(unit) {
   return releaseFriendlyPrisonerFrom(originX, originY, unit.team);
 }
 
-function finishMove(message, restored = []) {
+function finishMove() {
   selectedId = null;
-  const restoreText = restored.length
-    ? ` ${restored.map(piece => piece.name).join(', ')} se recupera al quedar libre su casilla.`
-    : '';
-  setStatus(`${message}${restoreText}`);
   checkEnd();
   if (!finished) currentTurn = NEXT_TEAM[currentTurn];
   render();
-  if (!finished) {
-    const prefix = restoreText ? `${message}${restoreText} ` : '';
-    setStatus(`${prefix}Turno de ${TEAM_LABEL[currentTurn].toLowerCase()}.`);
-  }
 }
 
 function moveUnit(unit, option) {
-  const restored = leaveOrigin(unit);
+  leaveOrigin(unit);
   unit.x = option.x;
   unit.y = option.y;
-  finishMove(`${unit.name} se mueve.`, restored);
+  finishMove();
 }
 
 function chooseCaptureAction(unit, option) {
@@ -150,13 +131,13 @@ function chooseCaptureAction(unit, option) {
 
   pendingCapture = { unitId:unit.id, targetId:target.id, x:option.x, y:option.y };
   resultContent.innerHTML = `
-    <div class="result-card capture-choice-card">
-      <p class="eyebrow">PIEZA ENEMIGA ALCANZADA</p>
-      <h2>${unit.icon} ${unit.name} → ${target.icon} ${target.name}</h2>
-      <p>Elige qué hacer con la pieza rival. Esta elección forma parte del mismo movimiento.</p>
+    <div class="modal-card capture-choice-card">
+      <h2>${unit.icon} ${unit.name}</h2>
+      <p>ha alcanzado a</p>
+      <h3>${target.icon} ${target.name}</h3>
       <div class="capture-actions">
-        <button class="primary-button" id="freeze-capture" type="button">Capturar · congelar</button>
-        <button class="danger-button" id="destroy-capture" type="button">Destruir · retirar del tablero</button>
+        <button class="primary-button" id="freeze-capture" type="button">Capturar</button>
+        <button class="danger-button" id="destroy-capture" type="button">Destruir</button>
       </div>
     </div>`;
   resultDialog.showModal();
@@ -176,7 +157,7 @@ function resolveCapture(action) {
     return;
   }
 
-  const restored = leaveOrigin(unit);
+  leaveOrigin(unit);
 
   if (action === 'capture') {
     target.captured = true;
@@ -194,11 +175,7 @@ function resolveCapture(action) {
   unit.x = x;
   unit.y = y;
   if (resultDialog.open) resultDialog.close();
-
-  const message = action === 'capture'
-    ? `${unit.name} captura a ${target.name}; queda congelada bajo la pieza atacante.`
-    : `${unit.name} destruye a ${target.name}; queda fuera de la partida.`;
-  finishMove(message, restored);
+  finishMove();
 }
 
 function perform(unit, option) {
@@ -224,17 +201,18 @@ function finish(winner) {
   capturedForBlack.forEach(unit => { unit.recruitedBy = 'enemy'; });
 
   const list = pieces => pieces.length
-    ? `<ul>${pieces.map(piece => `<li>${piece.icon} ${piece.name} (${piece.type})</li>`).join('')}</ul>`
+    ? `<ul>${pieces.map(piece => `<li>${piece.icon} ${piece.name}</li>`).join('')}</ul>`
     : '<p>Ninguna.</p>';
 
   resultContent.innerHTML = `
-    <div class="result-card">
-      <p class="eyebrow">PARTIDA TERMINADA</p>
-      <h2>Victoria de ${winner === 'player' ? 'blancas' : 'negras'}</h2>
-      <p>Las piezas que siguen congeladas al terminar la partida pasan a formar parte de la banda que las capturó. Las destruidas no se incorporan a ninguna banda.</p>
-      <h3>Banda blanca incorpora</h3>${list(capturedForWhite)}
-      <h3>Banda negra incorpora</h3>${list(capturedForBlack)}
-      <button class="primary-button" id="play-again">Nueva escaramuza</button>
+    <div class="modal-card end-card">
+      <h2>Ganan ${winner === 'player' ? 'las blancas' : 'las negras'}</h2>
+      <p>Las piezas congeladas que siguen en el tablero pasan a su banda.</p>
+      <div class="results-grid">
+        <div><h3>Blancas incorporan</h3>${list(capturedForWhite)}</div>
+        <div><h3>Negras incorporan</h3>${list(capturedForBlack)}</div>
+      </div>
+      <button class="primary-button" id="play-again">Jugar otra vez</button>
     </div>`;
 
   render();
@@ -251,8 +229,6 @@ function renderBoard() {
       const cell = document.createElement('button');
       cell.type = 'button';
       cell.className = 'cell';
-      cell.dataset.label = `${String.fromCharCode(65+x)}${8-y}`;
-      cell.setAttribute('role', 'gridcell');
 
       const option = opts.find(item => item.x === x && item.y === y);
       if (option) cell.classList.add(option.kind === 'move-frozen' ? 'rescue-target' : `${option.kind}-target`);
@@ -261,7 +237,6 @@ function renderBoard() {
       frozen.forEach(piece => {
         const prisoner = document.createElement('div');
         prisoner.className = `prisoner ${piece.team}`;
-        prisoner.title = `${piece.name} — congelada por ${TEAM_LABEL[piece.capturedBy]}`;
         prisoner.textContent = piece.icon;
         cell.append(prisoner);
       });
@@ -269,67 +244,38 @@ function renderBoard() {
       const unit = activeAt(x, y);
       if (unit) {
         const el = document.createElement('div');
-        el.className = `unit ${unit.team}`;
+        el.className = `unit ${unit.team} ${unit.id === selectedId ? 'selected' : ''}`;
         el.textContent = unit.icon;
         cell.append(el);
       }
 
-      cell.addEventListener('click', () => cellClick(x, y, option, unit));
+      cell.addEventListener('click', () => cellClick(option, unit));
       board.append(cell);
     }
   }
 }
 
-function cellClick(x, y, option, unit) {
+function cellClick(option, unit) {
   if (finished || pendingCapture) return;
   if (option) return perform(selected(), option);
 
-  if (unit?.team === currentTurn) {
-    selectedId = unit.id;
-    setStatus(`${unit.name}: elige un destino.`);
-  } else if (unit) {
-    setStatus(`Esa pieza pertenece a ${TEAM_LABEL[unit.team].toLowerCase()}.`);
-  } else {
-    selectedId = null;
-    setStatus(`Selecciona una pieza de ${TEAM_LABEL[currentTurn].toLowerCase()}.`);
-  }
+  if (unit?.team === currentTurn) selectedId = unit.id;
+  else selectedId = null;
+
   render();
 }
 
 function render() {
   renderBoard();
-
-  const people = units.filter(active);
-  roster.innerHTML = people.map(unit => `
-    <button class="roster-card ${unit.team} ${unit.id === selectedId ? 'selected' : ''}" data-unit="${unit.id}" ${unit.team !== currentTurn || finished || pendingCapture ? 'disabled' : ''}>
-      <span class="roster-icon">${unit.icon}</span>
-      <span><strong>${unit.name}</strong><small>${unit.type} · ${TEAM_LABEL[unit.team]}</small></span>
-    </button>`).join('');
-
-  roster.querySelectorAll('[data-unit]').forEach(button => button.addEventListener('click', () => {
-    const unit = units.find(piece => piece.id === button.dataset.unit);
-    if (unit && unit.team === currentTurn && active(unit) && !pendingCapture) {
-      selectedId = unit.id;
-      setStatus(`${unit.name}: elige un destino.`);
-      render();
-    }
-  }));
-
-  const unit = selected();
-  detail.className = 'unit-detail' + (unit ? '' : ' empty');
-  detail.innerHTML = unit
-    ? `<h2>${unit.icon} ${unit.name}</h2>
-       <div class="stat-row"><span>ARQUETIPO</span><strong>${unit.type}</strong></div>
-       <div class="stat-row"><span>BANDO</span><strong>${TEAM_LABEL[unit.team]}</strong></div>
-       <div class="ability"><strong>${unit.ability}</strong>${unit.description}</div>`
-    : 'Selecciona una unidad para ver sus acciones.';
-
-  turnBadge.textContent = currentTurn === 'player' ? 'Turno: blancas' : 'Turno: negras';
-  prisonerCount.textContent = unresolvedPrisoners().length;
+  board.dataset.turn = currentTurn;
 }
 
 resultDialog.addEventListener('cancel', event => {
   if (pendingCapture) event.preventDefault();
 });
-restart.addEventListener('click', reset);
+
+document.addEventListener('keydown', event => {
+  if ((event.key === 'r' || event.key === 'R') && !pendingCapture) reset();
+});
+
 reset();
