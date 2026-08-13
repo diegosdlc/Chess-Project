@@ -27,8 +27,19 @@ button{font:inherit}
   width:100%;
   aspect-ratio:940 / 580;
   position:relative;
-  background:url('./board_iso.svg') center/100% 100% no-repeat;
+  overflow:hidden;
   touch-action:manipulation;
+}
+.board::before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  width:163.404255%;
+  height:171.724138%;
+  left:-26.595745%;
+  top:-51.724138%;
+  background:url('./assets/boards/Tablero%20%2820260812071431%29.webp') center/100% 100% no-repeat;
+  pointer-events:none;
 }
 .iso-cell,.unit,.prisoner{position:absolute}
 .iso-cell{
