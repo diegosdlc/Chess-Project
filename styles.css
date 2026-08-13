@@ -41,7 +41,7 @@ button{font:inherit}
   background:url('./assets/boards/Tablero%20%2820260812071431%29.webp') center/100% 100% no-repeat;
   pointer-events:none;
 }
-.iso-cell,.unit,.prisoner{position:absolute}
+.iso-cell,.unit,.prisoner,.piece-capture-actions{position:absolute}
 .iso-cell{
   z-index:1;
   padding:0;
@@ -70,6 +70,11 @@ button{font:inherit}
   border:3px solid var(--capture);
   background:rgba(255,215,0,.14);
 }
+.iso-cell.pending-capture-target::before{
+  opacity:1;
+  border:3px solid rgba(255,255,255,.9);
+  background:rgba(232,180,24,.22);
+}
 .unit,.prisoner{
   user-select:none;
   font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Arial Unicode MS",sans-serif;
@@ -96,6 +101,11 @@ button{font:inherit}
   outline-offset:2px;
   transform:translateY(-4px);
 }
+.unit.awaiting-capture{
+  outline:3px solid rgba(255,255,255,.95);
+  outline-offset:3px;
+  animation:capture-pulse .8s ease-in-out infinite alternate;
+}
 .prisoner{
   z-index:3;
   font-size:clamp(.45rem,1.15vw,.9rem);
@@ -108,6 +118,38 @@ button{font:inherit}
 }
 .prisoner.player{background:rgba(37,50,41,.9)}
 .prisoner.enemy{background:rgba(70,24,24,.9)}
+.piece-capture-actions{
+  z-index:8;
+  pointer-events:none;
+}
+.piece-action{
+  position:absolute;
+  top:50%;
+  min-width:74px;
+  padding:9px 11px;
+  border:0;
+  border-radius:999px;
+  color:#fff;
+  font-size:clamp(.62rem,1.5vw,.86rem);
+  font-weight:800;
+  box-shadow:0 6px 16px rgba(0,0,0,.34);
+  cursor:pointer;
+  pointer-events:auto;
+  white-space:nowrap;
+  opacity:0;
+  animation:piece-action-pop .18s ease-out forwards;
+  -webkit-tap-highlight-color:transparent;
+}
+.capture-piece-action{
+  right:calc(100% + 8px);
+  background:#1c7a48;
+  transform:translate(12px,-50%) scale(.88);
+}
+.destroy-piece-action{
+  left:calc(100% + 8px);
+  background:#962a2a;
+  transform:translate(-12px,-50%) scale(.88);
+}
 .result-dialog{padding:0;border:none;background:transparent}
 .result-dialog::backdrop{background:rgba(0,0,0,.46)}
 .modal-card{
@@ -123,15 +165,28 @@ button{font:inherit}
 .modal-card h2{font-size:1.45rem}
 .modal-card h3{font-size:1.1rem;margin-top:6px}
 .modal-card p{margin:10px 0 0;line-height:1.45}
-.capture-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
 .primary-button,.danger-button{padding:12px 14px;border:none;border-radius:12px;font-weight:700;cursor:pointer}
 .primary-button{background:#1c7a48;color:white}
 .danger-button{background:#962a2a;color:white}
 .end-card .results-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;text-align:left}
 .end-card ul{margin:8px 0 0;padding-left:20px}
 .end-card .primary-button{width:100%;margin-top:8px}
+@keyframes piece-action-pop{
+  to{opacity:1;transform:translate(0,-50%) scale(1)}
+}
+@keyframes capture-pulse{
+  from{filter:brightness(1)}
+  to{filter:brightness(1.16)}
+}
 @media (max-width:640px){
   .board-shell{width:100vw;padding:0}
-  .capture-actions,.end-card .results-grid{grid-template-columns:1fr}
+  .piece-action{
+    min-width:64px;
+    padding:8px 9px;
+    font-size:.65rem;
+  }
+  .capture-piece-action{right:calc(100% + 5px)}
+  .destroy-piece-action{left:calc(100% + 5px)}
+  .end-card .results-grid{grid-template-columns:1fr}
   .modal-card{min-width:min(94vw,320px)}
 }

@@ -182,19 +182,7 @@ function chooseCaptureAction(unit, option) {
   if (!target || target.team === unit.team) return;
 
   pendingCapture = { unitId:unit.id, targetId:target.id, x:option.x, y:option.y };
-  resultContent.innerHTML = `
-    <div class="modal-card capture-choice-card">
-      <h2>${unit.icon} ${unit.name}</h2>
-      <p>ha alcanzado a</p>
-      <h3>${target.icon} ${target.name}</h3>
-      <div class="capture-actions">
-        <button class="primary-button" id="freeze-capture" type="button">Capturar</button>
-        <button class="danger-button" id="destroy-capture" type="button">Destruir</button>
-      </div>
-    </div>`;
-  resultDialog.showModal();
-  document.querySelector('#freeze-capture').addEventListener('click', () => resolveCapture('capture'));
-  document.querySelector('#destroy-capture').addEventListener('click', () => resolveCapture('destroy'));
+  render();
 }
 
 function resolveCapture(action) {
@@ -205,7 +193,6 @@ function resolveCapture(action) {
   pendingCapture = null;
 
   if (!unit || !target || !active(unit) || !active(target)) {
-    if (resultDialog.open) resultDialog.close();
     render();
     return;
   }
@@ -227,7 +214,6 @@ function resolveCapture(action) {
 
   unit.x = x;
   unit.y = y;
-  if (resultDialog.open) resultDialog.close();
   finishMove();
 }
 
@@ -273,6 +259,37 @@ function finish(winner) {
   document.querySelector('#play-again').addEventListener('click', reset);
 }
 
+function renderCaptureChoice(unit, pieceBox) {
+  if (!pendingCapture || pendingCapture.targetId !== unit.id) return;
+
+  const actions = document.createElement('div');
+  actions.className = 'piece-capture-actions';
+  actions.setAttribute('role', 'group');
+  actions.setAttribute('aria-label', `Acción sobre ${unit.name}`);
+  place(actions, pieceBox);
+
+  const captureButton = document.createElement('button');
+  captureButton.type = 'button';
+  captureButton.className = 'piece-action capture-piece-action';
+  captureButton.textContent = 'Capturar';
+  captureButton.addEventListener('click', event => {
+    event.stopPropagation();
+    resolveCapture('capture');
+  });
+
+  const destroyButton = document.createElement('button');
+  destroyButton.type = 'button';
+  destroyButton.className = 'piece-action destroy-piece-action';
+  destroyButton.textContent = 'Destruir';
+  destroyButton.addEventListener('click', event => {
+    event.stopPropagation();
+    resolveCapture('destroy');
+  });
+
+  actions.append(captureButton, destroyButton);
+  board.append(actions);
+}
+
 function renderCell(x, y, option, unit) {
   const box = cellBox(x, y);
   const cell = document.createElement('button');
@@ -284,6 +301,7 @@ function renderCell(x, y, option, unit) {
   if (option) {
     cell.classList.add(option.kind === 'move-frozen' ? 'rescue-target' : `${option.kind}-target`);
   }
+  if (pendingCapture?.x === x && pendingCapture?.y === y) cell.classList.add('pending-capture-target');
 
   cell.addEventListener('click', () => cellClick(option, unit));
   board.append(cell);
@@ -306,7 +324,7 @@ function renderCell(x, y, option, unit) {
   if (unit) {
     const piece = document.createElement('button');
     piece.type = 'button';
-    piece.className = `unit ${unit.team} ${unit.id === selectedId ? 'selected' : ''}`;
+    piece.className = `unit ${unit.team} ${unit.id === selectedId ? 'selected' : ''} ${pendingCapture?.targetId === unit.id ? 'awaiting-capture' : ''}`;
     piece.textContent = unit.icon;
     piece.setAttribute('aria-label', unit.name);
 
@@ -320,12 +338,13 @@ function renderCell(x, y, option, unit) {
       cellClick(option, unit);
     });
     board.append(piece);
+    renderCaptureChoice(unit, pieceBox);
   }
 }
 
 function renderBoard() {
   board.innerHTML = '';
-  const opts = optionsFor(selected());
+  const opts = pendingCapture ? [] : optionsFor(selected());
 
   for (let diagonal = 0; diagonal <= 14; diagonal++) {
     for (let y = 0; y < 8; y++) {
@@ -352,10 +371,6 @@ function render() {
   renderBoard();
   board.dataset.turn = currentTurn;
 }
-
-resultDialog.addEventListener('cancel', event => {
-  if (pendingCapture) event.preventDefault();
-});
 
 document.addEventListener('keydown', event => {
   if ((event.key === 'r' || event.key === 'R') && !pendingCapture) reset();
