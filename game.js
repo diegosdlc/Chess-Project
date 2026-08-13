@@ -2,8 +2,17 @@ const board = document.querySelector('#board');
 const resultDialog = document.querySelector('#result-dialog');
 const resultContent = document.querySelector('#result-content');
 
-const TEAM_LABEL = { player: 'Blancas', enemy: 'Negras' };
 const NEXT_TEAM = { player: 'enemy', enemy: 'player' };
+
+// Calibrated against the isometric board artwork (940 x 580).
+// The logical board remains a normal 8x8 grid; only its projection is isometric.
+const ISO = {
+  width: 940,
+  height: 580,
+  origin: { x: 466, y: 44 },
+  xAxis: { x: 53.75, y: 31.5 },
+  yAxis: { x: -53.625, y: 31.375 }
+};
 
 const baseUnits = [
   { id:'warden', team:'player', name:'Guardia del Roble', type:'Torre', icon:'♜', x:1, y:6, range:'orthogonal' },
@@ -26,6 +35,47 @@ const activeAt = (x, y) => units.find(unit => active(unit) && unit.x === x && un
 const prisonersAt = (x, y) => units.filter(unit => unit.captured && !unit.destroyed && unit.x === x && unit.y === y);
 const selected = () => units.find(unit => unit.id === selectedId);
 const unresolvedPrisoners = () => units.filter(unit => unit.captured && !unit.destroyed);
+
+function point(x, y) {
+  return {
+    x: ISO.origin.x + x * ISO.xAxis.x + y * ISO.yAxis.x,
+    y: ISO.origin.y + x * ISO.xAxis.y + y * ISO.yAxis.y
+  };
+}
+
+function cellBox(x, y) {
+  const a = point(x, y);
+  const b = point(x + 1, y);
+  const c = point(x + 1, y + 1);
+  const d = point(x, y + 1);
+  const xs = [a.x, b.x, c.x, d.x];
+  const ys = [a.y, b.y, c.y, d.y];
+  const left = Math.min(...xs);
+  const top = Math.min(...ys);
+  const right = Math.max(...xs);
+  const bottom = Math.max(...ys);
+  return { left, top, width:right-left, height:bottom-top };
+}
+
+function pct(value, total) {
+  return `${(value / total) * 100}%`;
+}
+
+function place(element, box) {
+  element.style.left = pct(box.left, ISO.width);
+  element.style.top = pct(box.top, ISO.height);
+  element.style.width = pct(box.width, ISO.width);
+  element.style.height = pct(box.height, ISO.height);
+}
+
+function insetBox(box, horizontal, vertical) {
+  return {
+    left: box.left + box.width * horizontal,
+    top: box.top + box.height * vertical,
+    width: box.width * (1 - horizontal * 2),
+    height: box.height * (1 - vertical * 2)
+  };
+}
 
 function reset() {
   units = structuredClone(baseUnits).map(unit => ({ ...unit, captured:false, destroyed:false, capturedBy:null }));
@@ -54,6 +104,7 @@ function validLineMoves(unit, directions) {
       const x = unit.x + dx * step;
       const y = unit.y + dy * step;
       if (!inside(x, y)) break;
+
       const option = squareOption(unit, x, y);
       if (!option) break;
       moves.push(option);
@@ -66,13 +117,14 @@ function validLineMoves(unit, directions) {
 function pawnMoves(unit) {
   const moves = [];
   const dy = unit.team === 'player' ? -1 : 1;
-  const forwardX = unit.x;
   const forwardY = unit.y + dy;
 
-  if (inside(forwardX, forwardY) && !activeAt(forwardX, forwardY)) {
-    const frozen = prisonersAt(forwardX, forwardY);
-    if (!frozen.length) moves.push({ x:forwardX, y:forwardY, kind:'move' });
-    else if (frozen.some(piece => piece.team === unit.team)) moves.push({ x:forwardX, y:forwardY, kind:'move-frozen' });
+  if (inside(unit.x, forwardY) && !activeAt(unit.x, forwardY)) {
+    const frozen = prisonersAt(unit.x, forwardY);
+    if (!frozen.length) moves.push({ x:unit.x, y:forwardY, kind:'move' });
+    else if (frozen.some(piece => piece.team === unit.team)) {
+      moves.push({ x:unit.x, y:forwardY, kind:'move-frozen' });
+    }
   }
 
   for (const dx of [-1, 1]) {
@@ -94,13 +146,13 @@ function optionsFor(unit) {
 }
 
 function releaseFriendlyPrisonerFrom(x, y, team) {
-  if (x == null || y == null) return [];
-  const restored = prisonersAt(x, y).filter(piece => piece.team === team);
-  restored.forEach(piece => {
-    piece.captured = false;
-    piece.capturedBy = null;
-  });
-  return restored;
+  if (x == null || y == null) return;
+  prisonersAt(x, y)
+    .filter(piece => piece.team === team)
+    .forEach(piece => {
+      piece.captured = false;
+      piece.capturedBy = null;
+    });
 }
 
 function leaveOrigin(unit) {
@@ -108,7 +160,7 @@ function leaveOrigin(unit) {
   const originY = unit.y;
   unit.x = null;
   unit.y = null;
-  return releaseFriendlyPrisonerFrom(originX, originY, unit.team);
+  releaseFriendlyPrisonerFrom(originX, originY, unit.team);
 }
 
 function finishMove() {
@@ -151,6 +203,7 @@ function resolveCapture(action) {
   const unit = units.find(piece => piece.id === unitId);
   const target = units.find(piece => piece.id === targetId);
   pendingCapture = null;
+
   if (!unit || !target || !active(unit) || !active(target)) {
     if (resultDialog.open) resultDialog.close();
     render();
@@ -220,37 +273,67 @@ function finish(winner) {
   document.querySelector('#play-again').addEventListener('click', reset);
 }
 
+function renderCell(x, y, option, unit) {
+  const box = cellBox(x, y);
+  const cell = document.createElement('button');
+  cell.type = 'button';
+  cell.className = 'iso-cell';
+  cell.setAttribute('aria-label', `Casilla ${x + 1},${y + 1}`);
+  place(cell, box);
+
+  if (option) {
+    cell.classList.add(option.kind === 'move-frozen' ? 'rescue-target' : `${option.kind}-target`);
+  }
+
+  cell.addEventListener('click', () => cellClick(option, unit));
+  board.append(cell);
+
+  const frozen = prisonersAt(x, y);
+  frozen.forEach((piece, index) => {
+    const prisoner = document.createElement('div');
+    prisoner.className = `prisoner ${piece.team}`;
+    prisoner.textContent = piece.icon;
+
+    const prisonerBox = insetBox(box, 0.31, 0.25);
+    prisonerBox.left += box.width * (0.18 + index * 0.05);
+    prisonerBox.top += box.height * 0.28;
+    prisonerBox.width *= 0.58;
+    prisonerBox.height *= 0.72;
+    place(prisoner, prisonerBox);
+    board.append(prisoner);
+  });
+
+  if (unit) {
+    const piece = document.createElement('button');
+    piece.type = 'button';
+    piece.className = `unit ${unit.team} ${unit.id === selectedId ? 'selected' : ''}`;
+    piece.textContent = unit.icon;
+    piece.setAttribute('aria-label', unit.name);
+
+    const pieceBox = insetBox(box, 0.23, 0.03);
+    pieceBox.top -= box.height * 0.23;
+    pieceBox.height *= 1.18;
+    place(piece, pieceBox);
+
+    piece.addEventListener('click', event => {
+      event.stopPropagation();
+      cellClick(option, unit);
+    });
+    board.append(piece);
+  }
+}
+
 function renderBoard() {
   board.innerHTML = '';
   const opts = optionsFor(selected());
 
-  for (let y = 0; y < 8; y++) {
-    for (let x = 0; x < 8; x++) {
-      const cell = document.createElement('button');
-      cell.type = 'button';
-      cell.className = 'cell';
-
-      const option = opts.find(item => item.x === x && item.y === y);
-      if (option) cell.classList.add(option.kind === 'move-frozen' ? 'rescue-target' : `${option.kind}-target`);
-
-      const frozen = prisonersAt(x, y);
-      frozen.forEach(piece => {
-        const prisoner = document.createElement('div');
-        prisoner.className = `prisoner ${piece.team}`;
-        prisoner.textContent = piece.icon;
-        cell.append(prisoner);
-      });
-
+  for (let diagonal = 0; diagonal <= 14; diagonal++) {
+    for (let y = 0; y < 8; y++) {
+      const x = diagonal - y;
+      if (!inside(x, y)) continue;
       const unit = activeAt(x, y);
-      if (unit) {
-        const el = document.createElement('div');
-        el.className = `unit ${unit.team} ${unit.id === selectedId ? 'selected' : ''}`;
-        el.textContent = unit.icon;
-        cell.append(el);
-      }
-
-      cell.addEventListener('click', () => cellClick(option, unit));
-      board.append(cell);
+      const option = opts.find(item => item.x === x && item.y === y);
+      renderCell(x, y, option, unit);
     }
   }
 }
