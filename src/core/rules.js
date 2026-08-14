@@ -19,6 +19,10 @@ function squareOption(state, level, unit, x, y) {
   return null;
 }
 
+function blocksLineMovement(state, level, x, y) {
+  return Boolean(blockingElementAt(level, x, y) || state.activeAt(x, y));
+}
+
 function validLineMoves(state, level, unit, directions) {
   const moves = [];
   const maxSteps = (level.board.size ?? 8) - 1;
@@ -30,9 +34,8 @@ function validLineMoves(state, level, unit, directions) {
       if (!inside(level, x, y)) break;
 
       const option = squareOption(state, level, unit, x, y);
-      if (!option) break;
-      moves.push(option);
-      if (option.kind !== 'move') break;
+      if (option) moves.push(option);
+      if (blocksLineMovement(state, level, x, y)) break;
     }
   }
 
