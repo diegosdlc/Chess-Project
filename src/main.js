@@ -7,6 +7,7 @@ import { AudioManager } from './systems/AudioManager.js';
 import { ProgressionStore } from './systems/ProgressionStore.js';
 import { TutorialSystem } from './systems/TutorialSystem.js';
 import { BoardRenderer } from './render/BoardRenderer.js';
+import { AIController } from './ai/AIController.js';
 
 class GameApp {
   constructor() {
@@ -20,6 +21,8 @@ class GameApp {
     this.level = null;
     this.state = null;
     this.renderer = null;
+    this.ai = null;
+    this.aiTimer = null;
   }
 
   start() {
@@ -38,8 +41,10 @@ class GameApp {
 
   loadLevel(level, { forceTutorial = false } = {}) {
     if (!level) throw new Error('No hay ningún nivel disponible.');
+    this.cancelAiTurn();
     this.level = level;
     this.state = new GameState(level);
+    this.ai = level.ai ? new AIController(level.ai) : null;
     this.renderer = new BoardRenderer({
       board: this.board,
       level,
@@ -55,6 +60,7 @@ class GameApp {
   }
 
   resetLevel() {
+    this.cancelAiTurn();
     this.state.reset();
     if (this.resultDialog.open) this.resultDialog.close();
     this.render();
@@ -66,7 +72,7 @@ class GameApp {
   }
 
   cellClick(option, unit) {
-    if (this.state.finished || this.state.pendingCapture) return;
+    if (this.state.finished || this.state.pendingCapture || this.ai?.isTurn(this.state)) return;
     if (option) {
       this.perform(this.state.selected(), option);
       return;
@@ -144,6 +150,62 @@ class GameApp {
     this.checkEnd();
     if (!this.state.finished) this.state.changeTurn();
     this.render();
+    this.scheduleAiTurn();
+  }
+
+  scheduleAiTurn() {
+    this.cancelAiTurn();
+    if (!this.ai?.isTurn(this.state)) return;
+
+    this.aiTimer = window.setTimeout(() => {
+      this.aiTimer = null;
+      this.playAiTurn();
+    }, this.ai.thinkDelayMs);
+  }
+
+  cancelAiTurn() {
+    if (this.aiTimer != null) window.clearTimeout(this.aiTimer);
+    this.aiTimer = null;
+  }
+
+  playAiTurn() {
+    if (!this.ai?.isTurn(this.state)) return;
+    const action = this.ai.chooseAction(this.state, this.level);
+    if (!action) {
+      this.state.changeTurn();
+      this.render();
+      return;
+    }
+
+    const unit = this.state.units.find(piece => piece.id === action.unitId);
+    if (!unit || !this.state.active(unit)) return;
+
+    if (action.kind === 'move') {
+      this.moveUnit(unit, action);
+      return;
+    }
+
+    const target = this.state.units.find(piece => piece.id === action.targetId);
+    if (!target || !this.state.active(target)) return;
+    this.state.leaveOrigin(unit);
+
+    if (action.kind === 'capture') {
+      target.captured = true;
+      target.destroyed = false;
+      target.capturedBy = unit.team;
+      target.x = action.x;
+      target.y = action.y;
+    } else {
+      target.destroyed = true;
+      target.captured = false;
+      target.capturedBy = null;
+      target.x = null;
+      target.y = null;
+    }
+
+    unit.x = action.x;
+    unit.y = action.y;
+    this.finishMove();
   }
 
   checkEnd() {

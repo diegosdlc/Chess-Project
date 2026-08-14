@@ -28,6 +28,11 @@ export const tutorial01 = Object.freeze({
     volume: 0.45,
     loop: true
   },
+  ai: {
+    team: 'enemy',
+    depth: 2,
+    thinkDelayMs: 450
+  },
   rules: {
     victory: 'elimination',
     captureChoice: true
