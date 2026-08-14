@@ -8,6 +8,7 @@ import { ProgressionStore } from './systems/ProgressionStore.js';
 import { TutorialSystem } from './systems/TutorialSystem.js';
 import { BoardRenderer } from './render/BoardRenderer.js';
 import { AIController } from './ai/AIController.js';
+import { legalActionsFor } from './core/rules.js';
 
 class GameApp {
   constructor() {
@@ -56,14 +57,14 @@ class GameApp {
     this.audio.configure(level.music);
     this.tutorial.configure(level.id, level.tutorial, { forceEnabled: forceTutorial });
     if (this.resultDialog.open) this.resultDialog.close();
-    this.render();
+    this.resolveTurn();
   }
 
   resetLevel() {
     this.cancelAiTurn();
     this.state.reset();
     if (this.resultDialog.open) this.resultDialog.close();
-    this.render();
+    this.resolveTurn();
   }
 
   render() {
@@ -148,9 +149,59 @@ class GameApp {
   finishMove() {
     this.state.clearSelection();
     this.checkEnd();
-    if (!this.state.finished) this.state.changeTurn();
-    this.render();
-    this.scheduleAiTurn();
+    if (!this.state.finished) {
+      this.state.changeTurn();
+      this.resolveTurn();
+    }
+  }
+
+  resolveTurn() {
+    this.cancelAiTurn();
+    if (this.state.finished) return;
+
+    if (legalActionsFor(this.state, this.level).length) {
+      this.render();
+      this.scheduleAiTurn();
+      return;
+    }
+
+    const skippedTeam = this.state.currentTurn;
+    this.state.clearSelection();
+    this.state.changeTurn();
+    if (legalActionsFor(this.state, this.level).length) {
+      this.render();
+      this.showTurnPassed(skippedTeam);
+      return;
+    }
+
+    this.finishDraw();
+  }
+
+  showTurnPassed(team) {
+    this.resultContent.innerHTML = '';
+    const card = document.createElement('section');
+    card.className = 'modal-card end-card';
+    const title = document.createElement('h2');
+    title.textContent = 'Turno perdido';
+    const explanation = document.createElement('p');
+    explanation.textContent = `${this.factionName(team)} no tiene movimientos legales y pierde el turno.`;
+
+    const actions = document.createElement('div');
+    actions.className = 'result-actions';
+    const continueTurn = document.createElement('button');
+    continueTurn.type = 'button';
+    continueTurn.className = 'primary-button';
+    continueTurn.textContent = 'Continuar';
+    continueTurn.addEventListener('click', () => {
+      if (this.resultDialog.open) this.resultDialog.close();
+      this.render();
+      this.scheduleAiTurn();
+    });
+    actions.append(continueTurn);
+
+    card.append(title, explanation, actions);
+    this.resultContent.append(card);
+    if (!this.resultDialog.open) this.resultDialog.showModal();
   }
 
   scheduleAiTurn() {
@@ -172,8 +223,7 @@ class GameApp {
     if (!this.ai?.isTurn(this.state)) return;
     const action = this.ai.chooseAction(this.state, this.level);
     if (!action) {
-      this.state.changeTurn();
-      this.render();
+      this.resolveTurn();
       return;
     }
 
@@ -233,6 +283,34 @@ class GameApp {
 
     this.render();
     this.showResult(winner, playerRecruits, enemyRecruits);
+  }
+
+  finishDraw() {
+    if (this.state.finished) return;
+    this.state.finished = true;
+    this.cancelAiTurn();
+    this.render();
+
+    this.resultContent.innerHTML = '';
+    const card = document.createElement('section');
+    card.className = 'modal-card end-card';
+    const title = document.createElement('h2');
+    title.textContent = 'Tablas';
+    const explanation = document.createElement('p');
+    explanation.textContent = 'Ninguna banda tiene movimientos legales.';
+
+    const actions = document.createElement('div');
+    actions.className = 'result-actions';
+    const restart = document.createElement('button');
+    restart.type = 'button';
+    restart.className = 'primary-button';
+    restart.textContent = 'Reiniciar encuentro';
+    restart.addEventListener('click', () => this.resetLevel());
+    actions.append(restart);
+
+    card.append(title, explanation, actions);
+    this.resultContent.append(card);
+    if (!this.resultDialog.open) this.resultDialog.showModal();
   }
 
   showResult(winner, playerRecruits, enemyRecruits) {

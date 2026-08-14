@@ -10,12 +10,12 @@ Implement the agreed **no-legal-moves / draw** turn lifecycle rule.
 
 1. Whenever a side is about to take a turn, obtain its legal moves using the authoritative rules/move-generation layer.
 2. If at least one legal move exists, continue the turn normally.
-3. If no legal move exists, automatically pass/lose that side's turn.
+3. If no legal move exists, show a message naming that side and automatically pass/lose its turn.
 4. Check whether the opposing side has any legal move.
 5. If the opposing side can move, continue with that side's turn.
 6. If neither side can move, end the encounter as a draw.
 7. Show the user the exact status message **`Tablas`**.
-8. Restart the encounter from the active level's declared initial state after the draw notification.
+8. Show a **`Reiniciar encuentro`** button after the draw notification; restart from the active level's declared initial state when the player presses it.
 9. Human and AI turns must use the same rule and legal-move source.
 10. The implementation must remain reusable for future levels, custom starting positions, obstacles/special cells and new piece types.
 
@@ -39,9 +39,9 @@ Validate at minimum these scenarios:
 
 - Human has legal moves -> no behavior change.
 - AI has legal moves -> no behavior change.
-- Human has zero legal moves and AI has one or more -> human turn is skipped and AI proceeds.
-- AI has zero legal moves and human has one or more -> AI turn is skipped and control returns to human.
-- Human and AI both have zero legal moves -> `Tablas` is shown and the encounter restarts.
+- Human has zero legal moves and AI has one or more -> a specific turn-lost message is shown, then AI proceeds after confirmation.
+- AI has zero legal moves and human has one or more -> a specific turn-lost message is shown, then control returns to human after confirmation.
+- Human and AI both have zero legal moves -> `Tablas` and a `Reiniciar encuentro` button are shown.
 - After restart, the board/state matches the active level's initial configuration.
 - Repeated turn checks do not create an infinite loop.
 - Existing capture/movement rules still work.
@@ -50,9 +50,11 @@ If automated tests exist or can be added cleanly, cover the turn-resolution logi
 
 ## Status
 
-**Pending implementation.**
+**Implemented locally and validated; pending commit and push.**
 
-The rule has been agreed and documented, but no code change for it should be assumed until the implementation commit is present in GitHub.
+The turn lifecycle now reads legal actions from the shared rules layer. A blocked side shows a `Turno perdido` message naming that faction, then passes when the player presses `Continuar`. If the opposing side is also blocked, the game shows `Tablas` and a `Reiniciar encuentro` button. The active level restarts from its declared initial state when the player presses that button. The same lifecycle is used before human and AI turns.
+
+Validation completed: syntax checks pass for the modified JavaScript modules, and deterministic rules checks cover a blocked player with a movable AI plus both sides blocked. Browser interaction validation remains advisable before release.
 
 ## Next session
 
@@ -66,7 +68,7 @@ git switch main
 git pull --ff-only origin main
 ```
 
-Then read:
+Then validate and commit the implementation, then read:
 
 1. `PROJECT_CONTEXT.md`
 2. this file

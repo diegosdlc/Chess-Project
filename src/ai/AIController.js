@@ -1,4 +1,4 @@
-import { optionsFor } from '../core/rules.js';
+import { legalActionsFor, optionsFor } from '../core/rules.js';
 
 export class AIController {
   constructor(config = {}) {
@@ -42,21 +42,7 @@ export class AIController {
 }
 
 export function legalActions(state, level) {
-  const actions = [];
-  for (const unit of state.units) {
-    if (!state.active(unit) || unit.team !== state.currentTurn) continue;
-    for (const option of optionsFor(state, level, unit)) {
-      if (option.kind === 'capture') {
-        const target = state.activeAt(option.x, option.y);
-        if (!target) continue;
-        actions.push({ unitId: unit.id, targetId: target.id, kind: 'capture', x: option.x, y: option.y });
-        actions.push({ unitId: unit.id, targetId: target.id, kind: 'destroy', x: option.x, y: option.y });
-      } else {
-        actions.push({ unitId: unit.id, kind: 'move', x: option.x, y: option.y });
-      }
-    }
-  }
-  return actions;
+  return legalActionsFor(state, level);
 }
 
 function minimax(state, level, depth, alpha, beta, aiTeam, ai) {
