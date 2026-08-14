@@ -6,6 +6,7 @@ export class AudioManager {
     this.storageKey = storageKey;
     this.volumeOverride = this.readStoredVolume();
     this.bindVolumeControl();
+    this.bindPlaybackRetry();
   }
 
   configure(config) {
@@ -16,7 +17,6 @@ export class AudioManager {
   }
 
   unlock() {
-    if (this.unlocked) return;
     this.unlocked = true;
     this.playConfiguredMusic();
   }
@@ -40,16 +40,24 @@ export class AudioManager {
 
   playConfiguredMusic() {
     const track = this.config?.track;
-    if (!track || this.music) return;
+    if (!track) return;
 
-    const audio = new Audio(new URL(track, document.baseURI).href);
-    audio.loop = this.config.loop !== false;
+    let audio = this.music;
+    if (!audio) {
+      audio = new Audio(new URL(track, document.baseURI).href);
+      audio.loop = this.config.loop !== false;
+      audio.preload = 'auto';
+      this.music = audio;
+    }
+
     audio.volume = this.getVolume();
+    if (!audio.paused) return;
+
     audio.play().catch(() => {
-      // Browser autoplay policies may still require another explicit interaction.
-      this.music = null;
+      // Some browsers only grant media playback to specific interaction events.
+      // Clear the failed instance so the next trusted interaction can retry.
+      if (this.music === audio) this.music = null;
     });
-    this.music = audio;
   }
 
   playSfx(path, volume = 0.65) {
@@ -64,6 +72,18 @@ export class AudioManager {
     this.music.pause();
     this.music.currentTime = 0;
     this.music = null;
+  }
+
+  bindPlaybackRetry() {
+    const retry = () => {
+      if (!this.config?.track || (this.music && !this.music.paused)) return;
+      this.unlock();
+    };
+
+    // `click` is the most widely accepted media-unlock gesture. Capture phase means
+    // controls that stop propagation still allow the audio manager to retry.
+    document.addEventListener('click', retry, { capture: true });
+    document.addEventListener('keydown', retry, { capture: true });
   }
 
   bindVolumeControl() {
@@ -82,7 +102,10 @@ export class AudioManager {
     });
 
     this.menu.addEventListener('pointerdown', event => event.stopPropagation());
-    this.volumeInput.addEventListener('input', () => this.setVolume(Number(this.volumeInput.value) / 100));
+    this.volumeInput.addEventListener('input', () => {
+      this.setVolume(Number(this.volumeInput.value) / 100);
+      this.unlock();
+    });
     document.addEventListener('pointerdown', () => this.closeVolumeMenu());
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape') this.closeVolumeMenu();
