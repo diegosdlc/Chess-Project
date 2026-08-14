@@ -5,17 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#efefeb" />
     <title>Bandas del Tablero</title>
-    <link rel="stylesheet" href="./src/styles.css?v=20260813-2119" />
+    <link rel="stylesheet" href="./src/styles.css?v=20260814-1652" />
+    <link rel="stylesheet" href="./src/audio-controls.css?v=20260814-1652" />
   </head>
   <body>
     <main class="board-shell" aria-label="Juego de tablero">
       <div id="board" class="board" role="grid" aria-label="Tablero de ocho por ocho"></div>
     </main>
 
+    <div class="audio-control">
+      <button id="audio-menu-toggle" class="audio-menu-toggle" type="button" aria-label="Abrir control de volumen" aria-expanded="false" aria-controls="audio-menu">♪</button>
+      <div id="audio-menu" class="audio-menu" hidden>
+        <label for="music-volume">Música</label>
+        <input id="music-volume" type="range" min="0" max="100" step="1" value="45" aria-label="Volumen de la música" />
+        <output id="music-volume-value" for="music-volume">45%</output>
+      </div>
+    </div>
+
     <dialog id="result-dialog" class="result-dialog">
       <div id="result-content"></div>
     </dialog>
 
-    <script type="module" src="./src/main.js?v=20260813-2119"></script>
+    <script type="module" src="./src/main.js?v=20260814-1652"></script>
   </body>
 </html>

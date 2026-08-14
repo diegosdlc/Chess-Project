@@ -24,7 +24,7 @@ export const tutorial01 = Object.freeze({
     enemy: 'cinder'
   },
   music: {
-    track: null,
+    track: './assets/music/magiksolo-pirate-tavern-full-version-167990.mp3',
     volume: 0.45,
     loop: true
   },
