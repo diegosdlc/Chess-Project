@@ -1,0 +1,180 @@
+import { optionsFor } from '../core/rules.js';
+
+export class AIController {
+  constructor(config = {}) {
+    this.team = config.team ?? 'enemy';
+    this.depth = config.depth ?? 2;
+    this.randomness = config.randomness ?? 0.08;
+    this.thinkDelayMs = config.thinkDelayMs ?? 450;
+    this.values = {
+      pawn: 100,
+      bishop: 320,
+      rook: 500,
+      ...(config.pieceValues ?? {})
+    };
+    this.weights = {
+      material: 1,
+      captured: 0.65,
+      mobility: 2,
+      ...(config.weights ?? {})
+    };
+  }
+
+  isTurn(state) {
+    return !state.finished && state.currentTurn === this.team;
+  }
+
+  chooseAction(state, level) {
+    const actions = legalActions(state, level);
+    if (!actions.length) return null;
+
+    const scored = actions.map(action => {
+      const next = simulate(state, level, action);
+      return {
+        action,
+        score: minimax(next, level, this.depth - 1, -Infinity, Infinity, this.team, this)
+      };
+    }).sort((a, b) => b.score - a.score);
+
+    const candidates = scored.filter(item => item.score >= scored[0].score - Math.abs(scored[0].score * this.randomness + 8));
+    return candidates[Math.floor(Math.random() * candidates.length)]?.action ?? scored[0].action;
+  }
+}
+
+export function legalActions(state, level) {
+  const actions = [];
+  for (const unit of state.units) {
+    if (!state.active(unit) || unit.team !== state.currentTurn) continue;
+    for (const option of optionsFor(state, level, unit)) {
+      if (option.kind === 'capture') {
+        const target = state.activeAt(option.x, option.y);
+        if (!target) continue;
+        actions.push({ unitId: unit.id, targetId: target.id, kind: 'capture', x: option.x, y: option.y });
+        actions.push({ unitId: unit.id, targetId: target.id, kind: 'destroy', x: option.x, y: option.y });
+      } else {
+        actions.push({ unitId: unit.id, kind: 'move', x: option.x, y: option.y });
+      }
+    }
+  }
+  return actions;
+}
+
+function minimax(state, level, depth, alpha, beta, aiTeam, ai) {
+  const winner = winnerFor(state);
+  if (winner || depth <= 0) return evaluate(state, level, aiTeam, ai, winner);
+
+  const actions = legalActions(state, level);
+  if (!actions.length) return evaluate(state, level, aiTeam, ai, winner);
+  const maximizing = state.currentTurn === aiTeam;
+
+  if (maximizing) {
+    let best = -Infinity;
+    for (const action of actions) {
+      best = Math.max(best, minimax(simulate(state, level, action), level, depth - 1, alpha, beta, aiTeam, ai));
+      alpha = Math.max(alpha, best);
+      if (beta <= alpha) break;
+    }
+    return best;
+  }
+
+  let best = Infinity;
+  for (const action of actions) {
+    best = Math.min(best, minimax(simulate(state, level, action), level, depth - 1, alpha, beta, aiTeam, ai));
+    beta = Math.min(beta, best);
+    if (beta <= alpha) break;
+  }
+  return best;
+}
+
+function simulate(state, level, action) {
+  const next = cloneState(state);
+  const unit = next.units.find(piece => piece.id === action.unitId);
+  if (!unit) return next;
+
+  const originX = unit.x;
+  const originY = unit.y;
+  unit.x = null;
+  unit.y = null;
+  releaseFriendlyPrisoners(next, originX, originY, unit.team);
+
+  if (action.kind === 'capture' || action.kind === 'destroy') {
+    const target = next.units.find(piece => piece.id === action.targetId);
+    if (target) {
+      if (action.kind === 'capture') {
+        target.captured = true;
+        target.destroyed = false;
+        target.capturedBy = unit.team;
+        target.x = action.x;
+        target.y = action.y;
+      } else {
+        target.destroyed = true;
+        target.captured = false;
+        target.capturedBy = null;
+        target.x = null;
+        target.y = null;
+      }
+    }
+  }
+
+  unit.x = action.x;
+  unit.y = action.y;
+  next.currentTurn = next.currentTurn === 'player' ? 'enemy' : 'player';
+  return next;
+}
+
+function cloneState(state) {
+  const units = typeof structuredClone === 'function'
+    ? structuredClone(state.units)
+    : JSON.parse(JSON.stringify(state.units));
+  return {
+    ...state,
+    units,
+    active(unit) { return Boolean(unit && !unit.captured && !unit.destroyed); },
+    activeAt(x, y) { return this.units.find(unit => this.active(unit) && unit.x === x && unit.y === y) ?? null; },
+    prisonersAt(x, y) { return this.units.filter(unit => unit.captured && !unit.destroyed && unit.x === x && unit.y === y); }
+  };
+}
+
+function releaseFriendlyPrisoners(state, x, y, team) {
+  state.prisonersAt(x, y)
+    .filter(piece => piece.team === team)
+    .forEach(piece => {
+      piece.captured = false;
+      piece.capturedBy = null;
+    });
+}
+
+function winnerFor(state) {
+  const player = state.units.some(unit => state.active(unit) && unit.team === 'player');
+  const enemy = state.units.some(unit => state.active(unit) && unit.team === 'enemy');
+  if (!player) return 'enemy';
+  if (!enemy) return 'player';
+  return null;
+}
+
+function evaluate(state, level, aiTeam, ai, winner) {
+  if (winner) return winner === aiTeam ? 100000 : -100000;
+  const opponent = aiTeam === 'player' ? 'enemy' : 'player';
+
+  let score = 0;
+  for (const unit of state.units) {
+    const sign = unit.team === aiTeam ? 1 : -1;
+    const value = ai.values[unit.pieceType] ?? 250;
+    if (state.active(unit)) score += sign * value * ai.weights.material;
+    else if (unit.captured && !unit.destroyed) score -= sign * value * ai.weights.captured;
+  }
+
+  score += (mobilityFor(state, level, aiTeam) - mobilityFor(state, level, opponent)) * ai.weights.mobility;
+  return score;
+}
+
+function mobilityFor(state, level, team) {
+  const previousTurn = state.currentTurn;
+  state.currentTurn = team;
+  let moves = 0;
+  for (const unit of state.units) {
+    if (state.active(unit) && unit.team === team) moves += optionsFor(state, level, unit).length;
+  }
+  state.currentTurn = previousTurn;
+  return moves;
+}
