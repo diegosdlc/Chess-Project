@@ -3,7 +3,7 @@ import { FACTIONS } from './content/factions.js';
 import { getLevel, getNextLevel } from './content/levels/index.js';
 import { GameState } from './core/GameState.js';
 import { AssetRegistry } from './systems/AssetRegistry.js';
-import { AudioManager } from './systems/AudioManager.js';
+import { AudioManager } from './systems/AudioManager.js?v=20260814-1700';
 import { ProgressionStore } from './systems/ProgressionStore.js';
 import { TutorialSystem } from './systems/TutorialSystem.js';
 import { BoardRenderer } from './render/BoardRenderer.js';
@@ -76,7 +76,7 @@ class GameApp {
       if (this.state && (event.key === 'r' || event.key === 'R') && !this.state.pendingCapture) this.resetLevel();
     });
 
-    document.addEventListener('pointerdown', () => this.audio.unlock(), { once: true, passive: true });
+    document.addEventListener('pointerdown', () => this.audio.unlock(), { passive: true });
   }
 
   bindMenu() {

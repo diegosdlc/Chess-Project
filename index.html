@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#efefeb" />
     <title>Bandas del Tablero</title>
-    <link rel="stylesheet" href="./src/styles.css?v=20260816-1515" />
+    <link rel="stylesheet" href="./src/styles.css?v=20260814-1700" />
+    <link rel="stylesheet" href="./src/audio-controls.css?v=20260814-1700" />
   </head>
   <body>
     <main id="game-shell" class="board-shell" aria-label="Juego de tablero" hidden>
@@ -26,23 +27,19 @@
       </section>
     </main>
 
+    <div class="audio-control">
+      <button id="audio-menu-toggle" class="audio-menu-toggle" type="button" aria-label="Abrir control de volumen" aria-expanded="false" aria-controls="audio-menu">♪</button>
+      <div id="audio-menu" class="audio-menu" hidden>
+        <label for="music-volume">Música</label>
+        <input id="music-volume" type="range" min="0" max="100" step="1" value="45" aria-label="Volumen de la música" />
+        <output id="music-volume-value" for="music-volume">45%</output>
+      </div>
+    </div>
+
     <dialog id="result-dialog" class="result-dialog">
       <div id="result-content"></div>
     </dialog>
 
-    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
-      <section class="modal-card settings-card">
-        <button id="close-settings" class="dialog-close" type="button" aria-label="Cerrar ajustes">×</button>
-        <p class="eyebrow">Opciones</p>
-        <h2 id="settings-title">Ajustes</h2>
-        <div class="settings-list">
-          <div><span>Música</span><strong>Próximamente</strong></div>
-          <div><span>Dificultad</span><strong>Próximamente</strong></div>
-          <div><span>Controles</span><strong>Próximamente</strong></div>
-        </div>
-      </section>
-    </dialog>
-
-    <script type="module" src="./src/main.js?v=20260816-1445"></script>
+    <script type="module" src="./src/main.js?v=20260814-1700"></script>
   </body>
 </html>
