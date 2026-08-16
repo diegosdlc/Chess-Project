@@ -1,6 +1,6 @@
 # Bandas del Tablero
 
-A lightweight browser game with a data-driven structure for levels, factions, assets and tutorial UI. There is no build step: serve the repository with any static HTTP server and open `index.html`.
+A lightweight browser game with a data-driven structure for levels, factions, assets and tutorial UI. There is no build step: serve the repository with any static HTTP server and open `index.html`. Do not open `index.html` directly with `file:///`: Chromium browsers may display the styling but block the JavaScript modules.
 
 ## Project structure
 
@@ -45,3 +45,7 @@ A specific level can also be opened with `?level=<level-id>`.
 ## Progression
 
 Player victories are persisted in local storage. The progression store tracks completed levels, unlocked levels and recruited units, which gives later campaign/menu work a stable data layer without coupling it to the board renderer.
+
+## Start screen and local session
+
+The app opens on a start screen with a new game, continuation and settings entry point. An in-progress game is saved locally after setup and after each completed move, so **Continuar partida** can restore the active level, pieces and turn after closing the browser. Sessions are local to the current browser/device and are cleared when the encounter ends. The settings screen is currently a UI placeholder for future music, difficulty and controls settings.

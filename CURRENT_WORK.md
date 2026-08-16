@@ -1,10 +1,26 @@
 # Chess Project — Current Work
 
-Last updated: 2026-08-14
+Last updated: 2026-08-16
 
 ## Active task
 
-Implement the agreed **no-legal-moves / draw** turn lifecycle rule.
+Implement the first game UI layer: an illustrated start screen, an in-game settings entry point and resumable local sessions.
+
+## UI implementation status
+
+Implemented locally; pending push to GitHub.
+
+- `index.html` now opens on a start screen with **Nueva partida**, **Continuar partida** and **Ajustes**.
+- The game board includes an in-corner gear button that opens the same settings dialog.
+- The settings dialog is intentionally a visual placeholder for future music, difficulty and controls options.
+- A session snapshot is saved in browser local storage after a game starts and after each completed move. It records the active level, pieces and active turn; it deliberately does not retain a transient selected piece or an unfinished capture prompt.
+- Finished matches clear the in-progress session. Campaign progression continues to use `ProgressionStore`.
+- UI styling now uses a paper-cut / hand-drawn pencil language across the start screen, buttons, dialogs and interaction states. It is CSS-native and needs no additional art assets.
+- The project must be opened through an HTTP static server (for example `npx http-server -p 4173` and then `http://localhost:4173`), rather than by double-clicking `index.html`. Chrome can show the CSS through `file:///` while blocking the JavaScript modules that make the buttons work.
+
+Validation: `node --check src/main.js` and `git diff --check` pass.
+
+## Previous task: turn lifecycle
 
 ### Required behavior
 

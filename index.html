@@ -9,8 +9,22 @@
     <link rel="stylesheet" href="./src/audio-controls.css?v=20260814-1700" />
   </head>
   <body>
-    <main class="board-shell" aria-label="Juego de tablero">
+    <main id="game-shell" class="board-shell" aria-label="Juego de tablero" hidden>
       <div id="board" class="board" role="grid" aria-label="Tablero de ocho por ocho"></div>
+      <button id="game-settings" class="corner-settings" type="button" aria-label="Abrir ajustes" title="Ajustes">⚙</button>
+    </main>
+
+    <main id="home-screen" class="home-screen" aria-labelledby="home-title">
+      <section class="home-card">
+        <p class="eyebrow">Bandas del Tablero</p>
+        <h1 id="home-title">Elige tu próximo movimiento</h1>
+        <p class="home-copy">Una partida de estrategia sobre un tablero que no perdona.</p>
+        <div class="home-actions">
+          <button id="new-game" class="primary-button" type="button">Nueva partida</button>
+          <button id="continue-game" class="secondary-button" type="button">Continuar partida</button>
+          <button id="home-settings" class="text-button" type="button">Ajustes</button>
+        </div>
+      </section>
     </main>
 
     <div class="audio-control">
