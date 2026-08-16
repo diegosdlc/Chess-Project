@@ -10,14 +10,52 @@ import { BoardRenderer } from './render/BoardRenderer.js';
 import { AIController } from './ai/AIController.js';
 import { legalActionsFor } from './core/rules.js';
 
+class GameSessionStore {
+  constructor(storageKey) {
+    this.storageKey = storageKey;
+  }
+
+  load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(this.storageKey));
+      return saved?.levelId && saved?.state ? saved : null;
+    } catch {
+      return null;
+    }
+  }
+
+  save(levelId, state) {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify({
+        levelId,
+        state: { units: state.units, currentTurn: state.currentTurn, finished: state.finished }
+      }));
+    } catch {
+      // Storage is optional.
+    }
+  }
+
+  clear() {
+    try {
+      localStorage.removeItem(this.storageKey);
+    } catch {
+      // Storage is optional.
+    }
+  }
+}
+
 class GameApp {
   constructor() {
     this.board = document.querySelector('#board');
+    this.gameShell = document.querySelector('#game-shell');
+    this.homeScreen = document.querySelector('#home-screen');
     this.resultDialog = document.querySelector('#result-dialog');
     this.resultContent = document.querySelector('#result-content');
+    this.settingsDialog = document.querySelector('#settings-dialog');
     this.assets = new AssetRegistry(FACTIONS);
     this.audio = new AudioManager();
     this.progression = new ProgressionStore(GAME_CONFIG.progressionStorageKey, GAME_CONFIG.defaultLevelId);
+    this.session = new GameSessionStore(GAME_CONFIG.sessionStorageKey ?? 'bandas-del-tablero:session:v1');
     this.tutorial = new TutorialSystem({ storagePrefix: GAME_CONFIG.tutorialStoragePrefix });
     this.level = null;
     this.state = null;
@@ -28,23 +66,57 @@ class GameApp {
 
   start() {
     const params = new URLSearchParams(location.search);
-    const requestedLevelId = params.get(GAME_CONFIG.levelQueryParam) ?? GAME_CONFIG.defaultLevelId;
-    const level = getLevel(requestedLevelId) ?? getLevel(GAME_CONFIG.defaultLevelId);
+    const requestedLevelId = params.get(GAME_CONFIG.levelQueryParam);
     const forceTutorial = params.get(GAME_CONFIG.tutorialQueryParam) === '1';
-    this.loadLevel(level, { forceTutorial });
+    this.bindMenu();
+    if (requestedLevelId) this.startGame(getLevel(requestedLevelId) ?? getLevel(GAME_CONFIG.defaultLevelId), { forceTutorial });
+    else this.showHome();
 
     document.addEventListener('keydown', event => {
-      if ((event.key === 'r' || event.key === 'R') && !this.state.pendingCapture) this.resetLevel();
+      if (this.state && (event.key === 'r' || event.key === 'R') && !this.state.pendingCapture) this.resetLevel();
     });
 
     document.addEventListener('pointerdown', () => this.audio.unlock(), { once: true, passive: true });
   }
 
-  loadLevel(level, { forceTutorial = false } = {}) {
+  bindMenu() {
+    document.querySelector('#new-game').addEventListener('click', () => { this.session.clear(); this.startGame(getLevel(GAME_CONFIG.defaultLevelId)); });
+    document.querySelector('#continue-game').addEventListener('click', () => this.continueGame());
+    document.querySelector('#home-settings').addEventListener('click', () => this.openSettings());
+    document.querySelector('#game-settings').addEventListener('click', () => this.openSettings());
+    document.querySelector('#close-settings').addEventListener('click', () => this.settingsDialog.close());
+  }
+
+  showHome() {
+    this.cancelAiTurn();
+    this.gameShell.hidden = true;
+    this.homeScreen.hidden = false;
+    document.querySelector('#continue-game').disabled = !this.session.load();
+  }
+
+  startGame(level, options = {}) {
+    this.homeScreen.hidden = true;
+    this.gameShell.hidden = false;
+    this.loadLevel(level, options);
+  }
+
+  continueGame() {
+    const saved = this.session.load();
+    const level = saved && getLevel(saved.levelId);
+    if (!level) { this.session.clear(); this.showHome(); return; }
+    this.startGame(level, { savedState: saved.state });
+  }
+
+  openSettings() {
+    if (!this.settingsDialog.open) this.settingsDialog.showModal();
+  }
+
+  loadLevel(level, { forceTutorial = false, savedState = null } = {}) {
     if (!level) throw new Error('No hay ningún nivel disponible.');
     this.cancelAiTurn();
     this.level = level;
     this.state = new GameState(level);
+    if (savedState) this.restoreSavedState(savedState);
     this.ai = level.ai ? new AIController(level.ai) : null;
     this.renderer = new BoardRenderer({
       board: this.board,
@@ -58,11 +130,26 @@ class GameApp {
     this.tutorial.configure(level.id, level.tutorial, { forceEnabled: forceTutorial });
     if (this.resultDialog.open) this.resultDialog.close();
     this.resolveTurn();
+    this.saveSession();
+  }
+
+  restoreSavedState(savedState) {
+    if (!Array.isArray(savedState.units)) return;
+    this.state.units = savedState.units;
+    this.state.currentTurn = savedState.currentTurn === 'enemy' ? 'enemy' : 'player';
+    this.state.finished = Boolean(savedState.finished);
+    this.state.selectedId = null;
+    this.state.pendingCapture = null;
+  }
+
+  saveSession() {
+    if (this.level && this.state && !this.state.finished) this.session.save(this.level.id, this.state);
   }
 
   resetLevel() {
     this.cancelAiTurn();
     this.state.reset();
+    this.saveSession();
     if (this.resultDialog.open) this.resultDialog.close();
     this.resolveTurn();
   }
@@ -151,6 +238,7 @@ class GameApp {
     this.checkEnd();
     if (!this.state.finished) {
       this.state.changeTurn();
+      this.saveSession();
       this.resolveTurn();
     }
   }
@@ -268,6 +356,7 @@ class GameApp {
   finish(winner) {
     if (this.state.finished) return;
     this.state.finished = true;
+    this.session.clear();
 
     const playerRecruits = this.state.unresolvedPrisoners().filter(unit => unit.capturedBy === 'player');
     const enemyRecruits = this.state.unresolvedPrisoners().filter(unit => unit.capturedBy === 'enemy');
@@ -288,6 +377,7 @@ class GameApp {
   finishDraw() {
     if (this.state.finished) return;
     this.state.finished = true;
+    this.session.clear();
     this.cancelAiTurn();
     this.render();
 

@@ -64,6 +64,8 @@ These decisions come from the development history and should be preserved unless
 9. The AI should be reusable across levels. Prefer generic legal-move generation + evaluation/search over hard-coding each level into the AI.
 10. AI difficulty should be tunable per level (for example through search depth, evaluation parameters or other configuration) without duplicating the AI implementation.
 11. Adding a new piece/rule should primarily extend the rules/move-generation layer. The AI should automatically benefit from those legal moves where possible.
+12. The game opens on a start screen. In-progress sessions are persisted in browser local storage as a level id plus board state and active turn; selections and incomplete capture choices are intentionally transient. Completed matches clear that session, while campaign progression remains separate.
+13. The current UI language is paper-cut collage with pencil-like linework. Prefer CSS-native texture and hand-drawn treatment for UI chrome; keep the game board and piece artwork data-driven.
 
 ## Turn-blocking rule
 

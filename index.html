@@ -5,17 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#efefeb" />
     <title>Bandas del Tablero</title>
-    <link rel="stylesheet" href="./src/styles.css?v=20260813-2119" />
+    <link rel="stylesheet" href="./src/styles.css?v=20260816-1515" />
   </head>
   <body>
-    <main class="board-shell" aria-label="Juego de tablero">
+    <main id="game-shell" class="board-shell" aria-label="Juego de tablero" hidden>
       <div id="board" class="board" role="grid" aria-label="Tablero de ocho por ocho"></div>
+      <button id="game-settings" class="corner-settings" type="button" aria-label="Abrir ajustes" title="Ajustes">⚙</button>
+    </main>
+
+    <main id="home-screen" class="home-screen" aria-labelledby="home-title">
+      <section class="home-card">
+        <p class="eyebrow">Bandas del Tablero</p>
+        <h1 id="home-title">Elige tu próximo movimiento</h1>
+        <p class="home-copy">Una partida de estrategia sobre un tablero que no perdona.</p>
+        <div class="home-actions">
+          <button id="new-game" class="primary-button" type="button">Nueva partida</button>
+          <button id="continue-game" class="secondary-button" type="button">Continuar partida</button>
+          <button id="home-settings" class="text-button" type="button">Ajustes</button>
+        </div>
+      </section>
     </main>
 
     <dialog id="result-dialog" class="result-dialog">
       <div id="result-content"></div>
     </dialog>
 
-    <script type="module" src="./src/main.js?v=20260813-2119"></script>
+    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <section class="modal-card settings-card">
+        <button id="close-settings" class="dialog-close" type="button" aria-label="Cerrar ajustes">×</button>
+        <p class="eyebrow">Opciones</p>
+        <h2 id="settings-title">Ajustes</h2>
+        <div class="settings-list">
+          <div><span>Música</span><strong>Próximamente</strong></div>
+          <div><span>Dificultad</span><strong>Próximamente</strong></div>
+          <div><span>Controles</span><strong>Próximamente</strong></div>
+        </div>
+      </section>
+    </dialog>
+
+    <script type="module" src="./src/main.js?v=20260816-1445"></script>
   </body>
 </html>
