@@ -15,7 +15,8 @@
   inset:0;
   z-index:40;
   width:100vw;
-  min-height:100vh;
+  height:100vh;
+  height:100dvh;
   padding:0;
   display:block;
   overflow:hidden;
@@ -31,6 +32,13 @@
   height:62.5vw;
   transform:translate(-50%,-50%);
   overflow:hidden;
+}
+
+@media (orientation:landscape){
+  .home-stage{
+    width:min(100vw,160dvh);
+    height:min(62.5vw,100dvh);
+  }
 }
 
 .home-art-layer{
