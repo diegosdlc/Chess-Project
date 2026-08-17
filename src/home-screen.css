@@ -29,15 +29,18 @@
   left:50%;
   top:50%;
   width:100vw;
-  height:62.5vw;
+  height:auto;
+  aspect-ratio:8 / 5;
   transform:translate(-50%,-50%);
   overflow:hidden;
 }
 
 @media (orientation:landscape){
   .home-stage{
+    width:min(100vw,160vh);
     width:min(100vw,160dvh);
-    height:min(62.5vw,100dvh);
+    height:auto;
+    aspect-ratio:8 / 5;
   }
 }
 
