@@ -10,6 +10,8 @@ A lightweight browser game with a data-driven structure for levels, factions, as
 - `src/systems/` — assets, audio, progression and tutorial systems.
 - `src/content/factions.js` — faction identity and faction-specific piece artwork.
 - `src/content/levels/` — declarative level definitions and level registry.
+- `src/home-screen.css` — illustrated start-screen composition and animations.
+- `assets/menu/` — full-canvas start-screen background, title and button artwork.
 - `assets/boards/` — board artwork.
 - `assets/pieces/` — faction-specific piece artwork.
 - `assets/music/` — music and sound effects.
@@ -48,4 +50,8 @@ Player victories are persisted in local storage. The progression store tracks co
 
 ## Start screen and local session
 
-The app opens on a start screen with a new game, continuation and settings entry point. An in-progress game is saved locally after setup and after each completed move, so **Continuar partida** can restore the active level, pieces and turn after closing the browser. Sessions are local to the current browser/device and are cleared when the encounter ends. The settings screen is currently a UI placeholder for future music, difficulty and controls settings.
+The app opens on an illustrated 1536×960 start-screen composition built from full-canvas WebP layers in `assets/menu/`. The title has a short paper-placement entrance animation, and the three artwork buttons use subtle hover/focus zoom and press/tap feedback. The action IDs remain wired to the existing New Game, Continue and Settings logic.
+
+The filenames currently stored under `assets/menu/` include upload timestamp suffixes; `index.html` references those exact paths. If the files are renamed later, update the HTML paths in the same commit. See `assets/menu/README.md` for the current asset contract.
+
+An in-progress game is saved locally after setup and after each completed move, so **Continuar partida** can restore the active level, pieces and turn after closing the browser. Sessions are local to the current browser/device and are cleared when the encounter ends. The settings screen is currently a UI placeholder for future music, difficulty and controls settings.
