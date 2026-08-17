@@ -1,6 +1,12 @@
-# Chess Project — Shared Project Context
+# Turn Over — Shared Project Context
 
-This document is the durable context for development of **Bandas del Tablero / Chess Project** across different ChatGPT environments and devices.
+This document is the durable context for development of **Turn Over** across different ChatGPT environments and devices.
+
+## Naming
+
+**Turn Over** is the official product/game name. Use it in player-facing copy, documentation, release notes and future assets.
+
+Historical working names such as **Bandas del Tablero** and **Chess Project** should no longer be used as product names. The repository remains `diegosdlc/Chess-Project`, and existing browser-storage identifiers using `bandas-del-tablero:*` or `chess-project-*` are legacy technical identifiers that should remain unchanged until an explicit migration is implemented.
 
 ## Source of truth
 
@@ -66,6 +72,7 @@ These decisions come from the development history and should be preserved unless
 11. Adding a new piece/rule should primarily extend the rules/move-generation layer. The AI should automatically benefit from those legal moves where possible.
 12. The game opens on a start screen. In-progress sessions are persisted in browser local storage as a level id plus board state and active turn; selections and incomplete capture choices are intentionally transient. Completed matches clear that session, while campaign progression remains separate.
 13. The current UI language is paper-cut collage with pencil-like linework. Prefer CSS-native texture and hand-drawn treatment for UI chrome; keep the game board and piece artwork data-driven.
+14. The official game name is **Turn Over**. Do not introduce new player-facing references to the former working names.
 
 ## Turn-blocking rule
 

@@ -1,6 +1,10 @@
-# Chess Project — Current Work
+# Turn Over — Current Work
 
-Last updated: 2026-08-16
+Last updated: 2026-08-17
+
+## Project naming
+
+The official game name is **Turn Over**. Historical working names **Bandas del Tablero** and **Chess Project** are no longer product names. The repository name and existing browser-storage keys remain unchanged as legacy technical identifiers until an explicit migration is implemented.
 
 ## Active task
 
@@ -8,17 +12,15 @@ Implement the first game UI layer: an illustrated start screen, an in-game setti
 
 ## UI implementation status
 
-Implemented locally; pending push to GitHub.
+Implemented and merged to `main`.
 
-- `index.html` now opens on a start screen with **Nueva partida**, **Continuar partida** and **Ajustes**.
+- `index.html` opens on a start screen with **Nueva partida**, **Continuar partida** and **Ajustes**.
 - The game board includes an in-corner gear button that opens the same settings dialog.
 - The settings dialog is intentionally a visual placeholder for future music, difficulty and controls options.
 - A session snapshot is saved in browser local storage after a game starts and after each completed move. It records the active level, pieces and active turn; it deliberately does not retain a transient selected piece or an unfinished capture prompt.
 - Finished matches clear the in-progress session. Campaign progression continues to use `ProgressionStore`.
-- UI styling now uses a paper-cut / hand-drawn pencil language across the start screen, buttons, dialogs and interaction states. It is CSS-native and needs no additional art assets.
+- UI styling uses a paper-cut / hand-drawn pencil language across the start screen, buttons, dialogs and interaction states.
 - The project must be opened through an HTTP static server (for example `npx http-server -p 4173` and then `http://localhost:4173`), rather than by double-clicking `index.html`. Chrome can show the CSS through `file:///` while blocking the JavaScript modules that make the buttons work.
-
-Validation: `node --check src/main.js` and `git diff --check` pass.
 
 ## Previous task: turn lifecycle
 
@@ -66,17 +68,13 @@ If automated tests exist or can be added cleanly, cover the turn-resolution logi
 
 ## Status
 
-**Implemented locally and validated; pending commit and push.**
+**Implemented and merged.**
 
-The turn lifecycle now reads legal actions from the shared rules layer. A blocked side shows a `Turno perdido` message naming that faction, then passes when the player presses `Continuar`. If the opposing side is also blocked, the game shows `Tablas` and a `Reiniciar encuentro` button. The active level restarts from its declared initial state when the player presses that button. The same lifecycle is used before human and AI turns.
-
-Validation completed: syntax checks pass for the modified JavaScript modules, and deterministic rules checks cover a blocked player with a movable AI plus both sides blocked. Browser interaction validation remains advisable before release.
+The turn lifecycle reads legal actions from the shared rules layer. A blocked side shows a `Turno perdido` message naming that faction, then passes when the player presses `Continuar`. If the opposing side is also blocked, the game shows `Tablas` and a `Reiniciar encuentro` button. The active level restarts from its declared initial state when the player presses that button. The same lifecycle is used before human and AI turns.
 
 ## Next session
 
-The next coding session is expected to run from the **Windows local project**.
-
-Before implementation:
+Before implementation on Windows:
 
 ```bash
 git status
@@ -84,11 +82,11 @@ git switch main
 git pull --ff-only origin main
 ```
 
-Then validate and commit the implementation, then read:
+Then read:
 
 1. `PROJECT_CONTEXT.md`
 2. this file
 3. `README.md`
-4. the relevant files under `src/core/`, `src/ai/` and `src/main.js`
+4. the relevant implementation files
 
 After implementation, update this file to record completion/remaining issues, commit and push to GitHub before moving back to the Android/cloud environment.
