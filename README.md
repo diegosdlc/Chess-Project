@@ -1,6 +1,14 @@
-# Bandas del Tablero
+# Turn Over
+
+**Turn Over** is the official name of the game. The GitHub repository remains `diegosdlc/Chess-Project` for continuity.
 
 A lightweight browser game with a data-driven structure for levels, factions, assets and tutorial UI. There is no build step: serve the repository with any static HTTP server and open `index.html`. Do not open `index.html` directly with `file:///`: Chromium browsers may display the styling but block the JavaScript modules.
+
+## Naming and legacy identifiers
+
+Player-facing copy and project documentation should use **Turn Over**. The historical working names **Bandas del Tablero** and **Chess Project** are obsolete as product names.
+
+The repository name `Chess-Project` and the existing browser-storage identifiers (`bandas-del-tablero:*` and `chess-project-music-volume`) are intentionally retained for now as technical legacy identifiers. Changing them without a migration would break existing links and/or discard saved progression, sessions or preferences.
 
 ## Project structure
 
