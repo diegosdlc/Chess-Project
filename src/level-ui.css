@@ -1,0 +1,240 @@
+.level-screen{
+  position:relative;
+  width:100vw;
+  height:100vh;
+  max-width:none;
+  padding:0;
+  overflow:hidden;
+  background:#c89f72 url('../assets/background.webp') center/cover no-repeat;
+}
+
+.level-stage{
+  position:relative;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+}
+
+.board-stage{
+  position:absolute;
+  z-index:5;
+  width:min(76vw,1180px);
+  right:-2.5vw;
+  top:1.5vh;
+  transform:rotate(.15deg);
+  transform-origin:center;
+}
+
+.level-screen .board{
+  width:100%;
+  filter:none;
+}
+
+.notebook-ui{
+  position:absolute;
+  z-index:20;
+  left:0;
+  bottom:-1.2vh;
+  width:clamp(320px,40vw,625px);
+  aspect-ratio:625/500;
+  user-select:none;
+}
+
+.notebook-base{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  pointer-events:none;
+}
+
+.notebook-tabs{
+  position:absolute;
+  z-index:4;
+  left:18.2%;
+  top:-1.5%;
+  width:59%;
+  height:13%;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  align-items:end;
+}
+
+.notebook-tab{
+  position:relative;
+  height:100%;
+  padding:0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  transform:translateY(7px);
+  transition:transform 170ms cubic-bezier(.2,.85,.25,1),filter 170ms ease;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.notebook-tab:hover,
+.notebook-tab:focus-visible{
+  transform:translateY(2px);
+}
+
+.notebook-tab[aria-selected='true']{
+  transform:translateY(-7px);
+  filter:drop-shadow(0 4px 2px rgba(57,41,22,.2));
+}
+
+.notebook-tab img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  pointer-events:none;
+}
+
+.notebook-page{
+  position:absolute;
+  z-index:3;
+  left:16.5%;
+  top:17.5%;
+  width:66%;
+  height:66%;
+  padding:1.5% 3% 4%;
+  color:#38423b;
+  font-family:'Segoe Print','Comic Sans MS',cursive;
+  transform:rotate(-.3deg);
+  overflow:hidden;
+}
+
+.notebook-page h2{
+  margin:0 0 .35rem;
+  font-size:clamp(1rem,2vw,1.55rem);
+  font-weight:700;
+}
+
+.notebook-page p,
+.notebook-page li{
+  font-size:clamp(.68rem,1.25vw,.95rem);
+  line-height:1.45;
+}
+
+.notebook-page p{margin:.35rem 0}
+.notebook-page ul{margin:.4rem 0;padding-left:1.3rem}
+
+.notebook-page-content{
+  height:calc(100% - 36px);
+  overflow:hidden;
+}
+
+.notebook-pagination{
+  position:absolute;
+  left:5%;
+  right:5%;
+  bottom:2%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+}
+
+.notebook-page-button{
+  min-width:34px;
+  min-height:30px;
+  border:0;
+  background:transparent;
+  color:#586157;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.notebook-page-button:disabled{opacity:.25}
+.notebook-page-indicator{font-size:.72rem;min-width:42px;text-align:center}
+
+.notebook-settings-row{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:10px;
+  align-items:center;
+  margin-top:10px;
+}
+
+.notebook-settings-row input{width:100%}
+
+.game-controls{
+  position:absolute;
+  z-index:25;
+  left:clamp(330px,41vw,640px);
+  bottom:2.5vh;
+  display:flex;
+  gap:10px;
+}
+
+.game-control-button{
+  width:46px;
+  height:46px;
+  border:2px solid rgba(55,49,39,.72);
+  border-radius:50%;
+  background:rgba(248,241,219,.9);
+  color:#3f493f;
+  font:700 1.1rem/1 Arial,sans-serif;
+  box-shadow:2px 3px 0 rgba(50,39,25,.22);
+  cursor:pointer;
+  transition:transform .14s ease,box-shadow .14s ease;
+}
+
+.game-control-button:hover,
+.game-control-button:focus-visible{
+  transform:translateY(-2px);
+  box-shadow:2px 5px 0 rgba(50,39,25,.2);
+}
+
+.level-screen.is-ui-paused .board-stage{
+  pointer-events:none;
+}
+
+.pause-dialog{
+  padding:0;
+  border:0;
+  background:transparent;
+}
+
+.pause-dialog::backdrop{background:rgba(37,31,23,.38)}
+.pause-card{min-width:min(88vw,360px)}
+
+.level-screen > #game-settings,
+.level-screen .legacy-audio-control{display:none!important}
+
+@media (max-width:900px){
+  .board-stage{
+    width:min(94vw,1000px);
+    right:-10vw;
+    top:5vh;
+  }
+  .notebook-ui{width:clamp(300px,48vw,520px)}
+  .game-controls{left:auto;right:18px;bottom:18px}
+}
+
+@media (max-width:640px){
+  .board-stage{
+    width:112vw;
+    right:-29vw;
+    top:7vh;
+  }
+  .notebook-ui{
+    width:min(78vw,430px);
+    left:-7vw;
+    bottom:-1vh;
+  }
+  .notebook-page{
+    left:17.2%;
+    width:65%;
+  }
+  .notebook-page p,
+  .notebook-page li{font-size:clamp(.62rem,2.3vw,.82rem)}
+  .game-controls{right:10px;bottom:10px;gap:7px}
+  .game-control-button{width:42px;height:42px}
+}
+
+@media (orientation:portrait) and (min-width:641px){
+  .board-stage{width:105vw;right:-24vw;top:8vh}
+  .notebook-ui{width:min(58vw,560px);left:-2vw}
+}
