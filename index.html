@@ -6,9 +6,9 @@
     <meta name="theme-color" content="#efefeb" />
     <title>Turn Over</title>
     <link rel="stylesheet" href="./src/styles.css?v=20260814-1700" />
-    <link rel="stylesheet" href="./src/home-screen.css?v=20260817-2118" />
+    <link rel="stylesheet" href="./src/home-screen.css?v=20260819-0055" />
     <link rel="stylesheet" href="./src/audio-controls.css?v=20260814-1700" />
-    <link rel="stylesheet" href="./src/level-ui.css?v=20260818-1930" />
+    <link rel="stylesheet" href="./src/level-ui.css?v=20260819-0055" />
   </head>
   <body>
     <main id="game-shell" class="board-shell level-screen" aria-label="Juego de tablero" hidden>
@@ -18,7 +18,9 @@
         </div>
 
         <aside id="notebook-ui" class="notebook-ui" aria-label="Cuaderno de partida">
-          <img class="notebook-base" src="./assets/notebook%20menu/notebook.webp" alt="" aria-hidden="true" draggable="false" />
+          <div class="notebook-art" aria-hidden="true">
+            <img class="notebook-base" src="./assets/notebook%20menu/notebook.webp" alt="" draggable="false" />
+          </div>
 
           <nav class="notebook-tabs" role="tablist" aria-label="Secciones del cuaderno">
             <button class="notebook-tab" type="button" role="tab" data-section="band" aria-selected="true" aria-label="Banda">
@@ -57,7 +59,7 @@
     <main id="home-screen" class="home-screen" aria-labelledby="home-title">
       <h1 id="home-title" class="visually-hidden">Turn Over</h1>
       <section class="home-stage" aria-label="Menú principal">
-        <img class="home-art-layer home-background" src="./assets/menu/menu-background%20(20260817070941).webp" alt="" aria-hidden="true" />
+        <img class="home-art-layer home-background" src="./assets/background.webp" alt="" aria-hidden="true" />
         <img class="home-art-layer home-logo" src="./assets/menu/title-turn-over%20(20260817071053).webp" alt="" aria-hidden="true" />
 
         <button id="new-game" class="menu-hitbox hit-new" type="button" aria-label="Nueva partida">
