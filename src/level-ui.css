@@ -2,6 +2,7 @@
   position:relative;
   width:100vw;
   height:100vh;
+  height:100dvh;
   max-width:none;
   padding:0;
   overflow:hidden;
@@ -33,53 +34,66 @@
 .notebook-ui{
   position:absolute;
   z-index:20;
-  left:0;
-  bottom:-1.2vh;
-  width:clamp(320px,40vw,625px);
-  aspect-ratio:625/500;
+  left:-1vw;
+  bottom:-1.5vh;
+  width:clamp(390px,42vw,680px);
+  aspect-ratio:1533 / 1012;
   user-select:none;
 }
 
-.notebook-base{
+.notebook-art{
   position:absolute;
   inset:0;
-  width:100%;
-  height:100%;
-  object-fit:contain;
+  overflow:hidden;
+  pointer-events:none;
+}
+
+/* The exported notebook keeps its original PSD canvas. Crop the transparent
+   margins using the measured alpha bounds (395,239)-(1928,1251) so layout
+   coordinates refer to the visible notebook instead of the export canvas. */
+.notebook-base{
+  position:absolute;
+  width:133.66%;
+  height:146.64%;
+  left:-25.77%;
+  top:-23.62%;
+  object-fit:fill;
   pointer-events:none;
 }
 
 .notebook-tabs{
   position:absolute;
   z-index:4;
-  left:18.2%;
-  top:-1.5%;
-  width:59%;
-  height:13%;
+  left:8%;
+  top:-8%;
+  width:74%;
+  height:24%;
   display:grid;
   grid-template-columns:repeat(4,1fr);
   align-items:end;
+  gap:1.5%;
 }
 
 .notebook-tab{
   position:relative;
+  width:100%;
   height:100%;
   padding:0;
   border:0;
   background:transparent;
   cursor:pointer;
-  transform:translateY(7px);
+  transform:translateY(9px);
   transition:transform 170ms cubic-bezier(.2,.85,.25,1),filter 170ms ease;
   -webkit-tap-highlight-color:transparent;
 }
 
 .notebook-tab:hover,
 .notebook-tab:focus-visible{
-  transform:translateY(2px);
+  transform:translateY(3px);
 }
 
 .notebook-tab[aria-selected='true']{
-  transform:translateY(-7px);
+  transform:translateY(-8px);
   filter:drop-shadow(0 4px 2px rgba(57,41,22,.2));
 }
 
@@ -88,16 +102,17 @@
   width:100%;
   height:100%;
   object-fit:contain;
+  object-position:center bottom;
   pointer-events:none;
 }
 
 .notebook-page{
   position:absolute;
   z-index:3;
-  left:16.5%;
-  top:17.5%;
+  left:11%;
+  top:18%;
   width:66%;
-  height:66%;
+  height:62%;
   padding:1.5% 3% 4%;
   color:#38423b;
   font-family:'Segoe Print','Comic Sans MS',cursive;
@@ -107,21 +122,21 @@
 
 .notebook-page h2{
   margin:0 0 .35rem;
-  font-size:clamp(1rem,2vw,1.55rem);
+  font-size:clamp(1rem,1.7vw,1.5rem);
   font-weight:700;
 }
 
 .notebook-page p,
 .notebook-page li{
-  font-size:clamp(.68rem,1.25vw,.95rem);
-  line-height:1.45;
+  font-size:clamp(.68rem,1.08vw,.92rem);
+  line-height:1.42;
 }
 
 .notebook-page p{margin:.35rem 0}
 .notebook-page ul{margin:.4rem 0;padding-left:1.3rem}
 
 .notebook-page-content{
-  height:calc(100% - 36px);
+  height:calc(100% - 34px);
   overflow:hidden;
 }
 
@@ -162,7 +177,7 @@
 .game-controls{
   position:absolute;
   z-index:25;
-  left:clamp(330px,41vw,640px);
+  left:clamp(390px,42vw,690px);
   bottom:2.5vh;
   display:flex;
   gap:10px;
@@ -205,36 +220,48 @@
 
 @media (max-width:900px){
   .board-stage{
-    width:min(94vw,1000px);
-    right:-10vw;
-    top:5vh;
+    width:min(96vw,1000px);
+    right:-11vw;
+    top:4vh;
   }
-  .notebook-ui{width:clamp(300px,48vw,520px)}
+  .notebook-ui{
+    width:min(68vw,560px);
+    left:-2vw;
+  }
   .game-controls{left:auto;right:18px;bottom:18px}
 }
 
 @media (max-width:640px){
   .board-stage{
-    width:112vw;
-    right:-29vw;
-    top:7vh;
+    width:116vw;
+    right:-31vw;
+    top:5.5vh;
   }
   .notebook-ui{
-    width:min(78vw,430px);
+    width:min(94vw,520px);
     left:-7vw;
-    bottom:-1vh;
+    bottom:-1.2vh;
+  }
+  .notebook-tabs{
+    left:10%;
+    top:-7%;
+    width:76%;
+    height:23%;
   }
   .notebook-page{
-    left:17.2%;
-    width:65%;
+    left:12%;
+    top:19%;
+    width:64%;
+    height:60%;
   }
+  .notebook-page h2{font-size:clamp(.95rem,4.1vw,1.2rem)}
   .notebook-page p,
-  .notebook-page li{font-size:clamp(.62rem,2.3vw,.82rem)}
+  .notebook-page li{font-size:clamp(.64rem,2.65vw,.82rem)}
   .game-controls{right:10px;bottom:10px;gap:7px}
   .game-control-button{width:42px;height:42px}
 }
 
 @media (orientation:portrait) and (min-width:641px){
-  .board-stage{width:105vw;right:-24vw;top:8vh}
-  .notebook-ui{width:min(58vw,560px);left:-2vw}
+  .board-stage{width:106vw;right:-24vw;top:7vh}
+  .notebook-ui{width:min(64vw,620px);left:-3vw}
 }
