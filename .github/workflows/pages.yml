@@ -3,10 +3,13 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request_target:
+    types: [opened, synchronize, reopened, closed]
   workflow_dispatch:
 
 permissions:
   contents: read
+  pull-requests: read
   pages: write
   id-token: write
 
@@ -21,8 +24,42 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout stable main
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Assemble stable site and PR previews
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          rm -rf _site
+          mkdir -p _site
+
+          # Always publish the stable main branch at the Pages root.
+          git archive HEAD | tar -x -C _site
+
+          # Publish every open same-repository PR below /preview/pr-<number>/.
+          # Fork PRs are deliberately skipped so untrusted code is never served
+          # from the project's GitHub Pages origin.
+          mapfile -t prs < <(
+            gh api "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=100" \
+              --jq '.[] | select(.head.repo.full_name == .base.repo.full_name) | .number'
+          )
+
+          for pr in "${prs[@]}"; do
+            echo "Building preview for PR #${pr}"
+            git fetch --force --no-tags origin \
+              "pull/${pr}/head:refs/remotes/origin/pr-${pr}"
+            mkdir -p "_site/preview/pr-${pr}"
+            git archive "refs/remotes/origin/pr-${pr}" | \
+              tar -x -C "_site/preview/pr-${pr}"
+          done
+
+          touch _site/.nojekyll
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -32,7 +69,7 @@ jobs:
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
