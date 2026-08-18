@@ -7,9 +7,11 @@ export const FACTIONS = Object.freeze({
       secondary: '#253229',
       text: '#f7f7f4'
     },
-    // Add faction-specific piece artwork here when it exists.
-    // Example: rook: './assets/pieces/verdant/rook.webp'
-    pieceAssets: {}
+    pieceAssets: {
+      rook: './assets/pieces/paper/rook.png',
+      bishop: './assets/pieces/paper/bishop.png',
+      pawn: './assets/pieces/paper/pawn.png'
+    }
   },
   cinder: {
     id: 'cinder',
@@ -19,7 +21,11 @@ export const FACTIONS = Object.freeze({
       secondary: '#461818',
       text: '#f7f7f4'
     },
-    pieceAssets: {}
+    pieceAssets: {
+      rook: './assets/pieces/paper/rook.png',
+      bishop: './assets/pieces/paper/bishop.png',
+      pawn: './assets/pieces/paper/pawn.png'
+    }
   }
 });
 
