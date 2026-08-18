@@ -13,13 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Pillow
-        run: python -m pip install --quiet pillow
-      - name: Inspect image bounds
+      - name: Install image tools
+        run: python -m pip install --quiet pillow opencv-python-headless numpy
+      - name: Inspect image bounds and board lines
         run: |
           python - <<'PY'
           from PIL import Image
           from pathlib import Path
+          import cv2
+          import numpy as np
+          import math
 
           files = [
               Path('assets/notebook menu/notebook.webp'),
@@ -39,4 +42,29 @@ jobs:
               alpha = image.getchannel('A')
               bbox = alpha.getbbox()
               print(f'{path}: size={image.size} alpha_bbox={bbox}')
+
+          board = cv2.imread('assets/boards/paper-board.webp', cv2.IMREAD_UNCHANGED)
+          if board.shape[2] == 4:
+              rgb = board[:, :, :3]
+              alpha = board[:, :, 3]
+          else:
+              rgb = board
+              alpha = np.full(board.shape[:2], 255, dtype=np.uint8)
+
+          gray = cv2.cvtColor(rgb, cv2.COLOR_BGR2GRAY)
+          # Restrict detection to visible artwork and dark pencil/grid marks.
+          mask = ((gray < 120) & (alpha > 40)).astype(np.uint8) * 255
+          lines = cv2.HoughLinesP(mask, 1, np.pi/180, threshold=70, minLineLength=180, maxLineGap=30)
+          found = []
+          if lines is not None:
+              for raw in lines[:, 0]:
+                  x1, y1, x2, y2 = map(int, raw)
+                  length = math.hypot(x2-x1, y2-y1)
+                  angle = math.degrees(math.atan2(y2-y1, x2-x1))
+                  if abs(angle) < 40 or abs(angle) > 140:
+                      found.append((round(length,1), round(angle,1), x1,y1,x2,y2))
+          found.sort(reverse=True)
+          print('paper-board longest diagonal-ish dark lines:')
+          for line in found[:40]:
+              print(line)
           PY
