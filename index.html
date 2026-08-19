@@ -6,19 +6,60 @@
     <meta name="theme-color" content="#efefeb" />
     <title>Turn Over</title>
     <link rel="stylesheet" href="./src/styles.css?v=20260814-1700" />
-    <link rel="stylesheet" href="./src/home-screen.css?v=20260817-2118" />
+    <link rel="stylesheet" href="./src/home-screen.css?v=20260819-0055" />
     <link rel="stylesheet" href="./src/audio-controls.css?v=20260814-1700" />
+    <link rel="stylesheet" href="./src/level-ui.css?v=20260819-0055" />
   </head>
   <body>
-    <main id="game-shell" class="board-shell" aria-label="Juego de tablero" hidden>
-      <div id="board" class="board" role="grid" aria-label="Tablero de ocho por ocho"></div>
-      <button id="game-settings" class="corner-settings" type="button" aria-label="Abrir ajustes" title="Ajustes">⚙</button>
+    <main id="game-shell" class="board-shell level-screen" aria-label="Juego de tablero" hidden>
+      <section class="level-stage" aria-label="Escenario de partida">
+        <div class="board-stage">
+          <div id="board" class="board" role="grid" aria-label="Tablero de ocho por ocho"></div>
+        </div>
+
+        <aside id="notebook-ui" class="notebook-ui" aria-label="Cuaderno de partida">
+          <div class="notebook-art" aria-hidden="true">
+            <img class="notebook-base" src="./assets/notebook%20menu/notebook.webp" alt="" draggable="false" />
+          </div>
+
+          <nav class="notebook-tabs" role="tablist" aria-label="Secciones del cuaderno">
+            <button class="notebook-tab" type="button" role="tab" data-section="band" aria-selected="true" aria-label="Banda">
+              <img src="./assets/notebook%20menu/btn-band.webp" alt="" aria-hidden="true" draggable="false" />
+            </button>
+            <button class="notebook-tab" type="button" role="tab" data-section="mission" aria-selected="false" aria-label="Misión">
+              <img src="./assets/notebook%20menu/btn-mission.webp" alt="" aria-hidden="true" draggable="false" />
+            </button>
+            <button class="notebook-tab" type="button" role="tab" data-section="rules" aria-selected="false" aria-label="Reglas">
+              <img src="./assets/notebook%20menu/btn-rules.webp" alt="" aria-hidden="true" draggable="false" />
+            </button>
+            <button class="notebook-tab" type="button" role="tab" data-section="settings" aria-selected="false" aria-label="Ajustes">
+              <img src="./assets/notebook%20menu/btn-settings.webp" alt="" aria-hidden="true" draggable="false" />
+            </button>
+          </nav>
+
+          <section class="notebook-page" aria-live="polite">
+            <div id="notebook-page-content" class="notebook-page-content"></div>
+            <div class="notebook-pagination" aria-label="Paginación del cuaderno">
+              <button id="notebook-page-prev" class="notebook-page-button" type="button" aria-label="Página anterior">←</button>
+              <span id="notebook-page-indicator" class="notebook-page-indicator">1 / 1</span>
+              <button id="notebook-page-next" class="notebook-page-button" type="button" aria-label="Página siguiente">→</button>
+            </div>
+          </section>
+        </aside>
+
+        <div class="game-controls" aria-label="Controles de partida">
+          <button id="mute-toggle" class="game-control-button" type="button" aria-label="Silenciar música" aria-pressed="false">🔊</button>
+          <button id="pause-toggle" class="game-control-button" type="button" aria-label="Pausar partida">Ⅱ</button>
+        </div>
+
+        <button id="game-settings" type="button" hidden aria-hidden="true">Ajustes</button>
+      </section>
     </main>
 
     <main id="home-screen" class="home-screen" aria-labelledby="home-title">
       <h1 id="home-title" class="visually-hidden">Turn Over</h1>
       <section class="home-stage" aria-label="Menú principal">
-        <img class="home-art-layer home-background" src="./assets/menu/menu-background%20(20260817070941).webp" alt="" aria-hidden="true" />
+        <img class="home-art-layer home-background" src="./assets/background.webp" alt="" aria-hidden="true" />
         <img class="home-art-layer home-logo" src="./assets/menu/title-turn-over%20(20260817071053).webp" alt="" aria-hidden="true" />
 
         <button id="new-game" class="menu-hitbox hit-new" type="button" aria-label="Nueva partida">
@@ -38,7 +79,7 @@
       </section>
     </main>
 
-    <div class="audio-control">
+    <div class="audio-control legacy-audio-control" aria-hidden="true" hidden>
       <button id="audio-menu-toggle" class="audio-menu-toggle" type="button" aria-label="Abrir control de volumen" aria-expanded="false" aria-controls="audio-menu">♪</button>
       <div id="audio-menu" class="audio-menu" hidden>
         <label for="music-volume">Música</label>
@@ -46,6 +87,17 @@
         <output id="music-volume-value" for="music-volume">45%</output>
       </div>
     </div>
+
+    <dialog id="pause-dialog" class="pause-dialog" aria-labelledby="pause-title">
+      <section class="modal-card pause-card">
+        <p class="eyebrow">Partida</p>
+        <h2 id="pause-title">Pausa</h2>
+        <p>La interacción con el tablero queda bloqueada mientras este mensaje está abierto.</p>
+        <div class="result-actions">
+          <button id="resume-game" class="primary-button" type="button">Continuar</button>
+        </div>
+      </section>
+    </dialog>
 
     <dialog id="result-dialog" class="result-dialog">
       <div id="result-content"></div>
@@ -65,5 +117,6 @@
     </dialog>
 
     <script type="module" src="./src/main.js?v=20260814-1700"></script>
+    <script type="module" src="./src/level-ui.js?v=20260818-1930"></script>
   </body>
 </html>
