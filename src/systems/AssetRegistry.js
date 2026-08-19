@@ -8,7 +8,10 @@ export class AssetRegistry {
   }
 
   pieceAsset(unit) {
-    return this.faction(unit.faction)?.pieceAssets?.[unit.pieceType] ?? null;
+    const asset = this.faction(unit.faction)?.pieceAssets?.[unit.pieceType] ?? null;
+    if (!asset) return null;
+    if (typeof asset === 'string') return asset;
+    return asset?.[unit.facing] ?? null;
   }
 
   piecePalette(unit) {
