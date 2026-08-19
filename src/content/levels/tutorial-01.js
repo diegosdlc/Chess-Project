@@ -1,4 +1,4 @@
-import { createInitialBand } from '../bands.js';
+import { createInitialBand, FACINGS } from '../bands.js';
 
 const PLAYER_POSITIONS = Object.freeze({
   king: { x: 2, y: 7 },
@@ -57,8 +57,18 @@ export function createTutorial01({ playerFactionId = 'green' } = {}) {
     captureChoice: true
   },
   units: [
-    ...createInitialBand({ team: 'player', factionId: playerFactionId, positions: PLAYER_POSITIONS }),
-    ...createInitialBand({ team: 'enemy', factionId: 'green', positions: ENEMY_POSITIONS })
+    ...createInitialBand({
+      team: 'player',
+      factionId: playerFactionId,
+      positions: PLAYER_POSITIONS,
+      facing: FACINGS.NORTH
+    }),
+    ...createInitialBand({
+      team: 'enemy',
+      factionId: 'green',
+      positions: ENEMY_POSITIONS,
+      facing: FACINGS.SOUTH
+    })
   ],
   // Blocking elements participate in movement rules. Add an `asset` path to render artwork.
   boardElements: [],
