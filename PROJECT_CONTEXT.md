@@ -6,13 +6,13 @@ This document is the durable context for development of **Turn Over** across dif
 
 **Turn Over** is the official product/game name. Use it in player-facing copy, documentation, release notes and future assets.
 
-Historical working names such as **Bandas del Tablero** and **Chess Project** should no longer be used as product names. The repository remains `diegosdlc/Chess-Project`, and existing browser-storage identifiers using `bandas-del-tablero:*` or `chess-project-*` are legacy technical identifiers that should remain unchanged until an explicit migration is implemented.
+Historical working names such as **Bandas del Tablero** and **Chess Project** should no longer be used as product names. The canonical repository is `diegosdlc/Turn-Over`; the former `diegosdlc/Chess-Project` URL redirects to it. Existing browser-storage identifiers using `bandas-del-tablero:*` or `chess-project-*` are legacy technical identifiers that should remain unchanged until an explicit migration is implemented.
 
 ## Source of truth
 
 **GitHub is the single source of truth for code, assets, project documentation and current work state.**
 
-Repository: `diegosdlc/Chess-Project`
+Repository: `diegosdlc/Turn-Over`
 Default branch: `main`
 
 Do not treat a ChatGPT conversation, a Windows checkout, an Android/cloud session, or an unpushed local file as authoritative. Durable decisions must end up in this repository.
@@ -46,14 +46,17 @@ Important areas:
 - `src/ai/` — AI implementation. It should consume legal moves produced by the rules engine rather than maintain a second set of chess rules.
 - `src/render/` — board, pieces and terrain rendering.
 - `src/systems/` — assets, audio, progression and tutorial systems.
-- `src/content/factions.js` — faction identity and faction-specific piece artwork.
+- `src/content/factions.js` — faction identity, special pieces and palettes.
+- `src/content/bands.js` — shared piece catalogue and starting-band factory.
 - `src/content/levels/` — declarative level definitions and registry.
 - `assets/boards/` — board artwork.
-- `assets/pieces/` — faction-specific piece artwork.
+- `assets/pieces/` — optional piece artwork; current factions use CSS token graphics.
 - `assets/music/` — music and sound effects.
 - `assets/board-elements/` — obstacles, props and special-tile artwork.
 
 See `README.md` for the repository's current concrete structure. When architecture changes materially, update both documents.
+
+See `docs/FACTIONS_AND_BANDS.md` for the current faction, starting-band, tutorial-selection, palette and session contract.
 
 ## Established game/design decisions
 

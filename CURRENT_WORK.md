@@ -1,6 +1,6 @@
 # Turn Over — Current Work
 
-Last updated: 2026-08-18
+Last updated: 2026-08-19
 
 ## Project naming
 
@@ -40,6 +40,8 @@ The no-legal-moves lifecycle is implemented: a blocked side loses its turn; if n
 The game now defines three simply named factions: Verde (special piece: bishop), Roja (rook) and Amarilla (knight). A reusable starting-band factory supplies king, queen, pawn and the selected faction's special piece. New Game opens a faction selector before constructing the tutorial level, while the tutorial opponent is always a green starting band. Green player pieces use a light palette and green AI pieces use a dark palette.
 
 The bitmap paper pieces are no longer assigned to factions. Gameplay has returned to the original CSS token graphics with chess glyphs; the asset files remain in the repository but are unused. Piece and faction display names are the plain chess/color names.
+
+The reusable contract, tutorial flow, palette behavior, session migration and extension checklist are documented in `docs/FACTIONS_AND_BANDS.md`.
 
 ## Local development
 
