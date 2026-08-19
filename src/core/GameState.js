@@ -1,4 +1,5 @@
 const NEXT_TEAM = Object.freeze({ player: 'enemy', enemy: 'player' });
+const OPPOSITE_FACING = Object.freeze({ north: 'south', south: 'north' });
 
 function clone(value) {
   return typeof structuredClone === 'function'
@@ -52,6 +53,18 @@ export class GameState {
 
   clearSelection() {
     this.selectedId = null;
+  }
+
+  setFacing(unit, facing) {
+    if (!unit || !OPPOSITE_FACING[facing]) return false;
+    unit.facing = facing;
+    return true;
+  }
+
+  turnAround(unit) {
+    if (!unit || !OPPOSITE_FACING[unit.facing]) return false;
+    unit.facing = OPPOSITE_FACING[unit.facing];
+    return true;
   }
 
   releaseFriendlyPrisonerFrom(x, y, team) {
