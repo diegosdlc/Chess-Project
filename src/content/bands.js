@@ -1,5 +1,10 @@
 import { getFaction } from './factions.js';
 
+export const FACINGS = Object.freeze({
+  NORTH: 'north',
+  SOUTH: 'south'
+});
+
 export const PIECES = Object.freeze({
   king: Object.freeze({ name: 'Rey', fallbackGlyph: '♚', moveProfile: 'king' }),
   queen: Object.freeze({ name: 'Reina', fallbackGlyph: '♛', moveProfile: 'queen' }),
@@ -9,9 +14,10 @@ export const PIECES = Object.freeze({
   pawn: Object.freeze({ name: 'Peón', fallbackGlyph: '♟', moveProfile: 'pawn' })
 });
 
-export function createInitialBand({ team, factionId, positions }) {
+export function createInitialBand({ team, factionId, positions, facing }) {
   const faction = getFaction(factionId);
   if (!faction) throw new Error(`Facción desconocida: ${factionId}`);
+  if (!Object.values(FACINGS).includes(facing)) throw new Error(`Orientación desconocida: ${facing}`);
 
   const pieceTypes = ['king', 'queen', 'pawn', faction.specialPieceType];
   return pieceTypes.map(pieceType => createUnit({
@@ -19,11 +25,12 @@ export function createInitialBand({ team, factionId, positions }) {
     team,
     faction: factionId,
     pieceType,
-    position: positions[pieceType]
+    position: positions[pieceType],
+    facing
   }));
 }
 
-function createUnit({ id, team, faction, pieceType, position }) {
+function createUnit({ id, team, faction, pieceType, position, facing }) {
   const piece = PIECES[pieceType];
   if (!piece) throw new Error(`Tipo de pieza desconocido: ${pieceType}`);
   if (!position) throw new Error(`Falta la posición inicial de ${pieceType} para ${team}`);
@@ -32,6 +39,7 @@ function createUnit({ id, team, faction, pieceType, position }) {
     id,
     team,
     faction,
+    facing,
     name: piece.name,
     pieceType,
     fallbackGlyph: piece.fallbackGlyph,
