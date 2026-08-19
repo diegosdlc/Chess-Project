@@ -42,6 +42,29 @@ function validLineMoves(state, level, unit, directions) {
   return moves;
 }
 
+function validStepMoves(state, level, unit, offsets) {
+  const moves = [];
+
+  for (const [dx, dy] of offsets) {
+    const x = unit.x + dx;
+    const y = unit.y + dy;
+    if (!inside(level, x, y)) continue;
+
+    const option = squareOption(state, level, unit, x, y);
+    if (option) moves.push(option);
+  }
+
+  return moves;
+}
+
+const ORTHOGONAL_DIRECTIONS = Object.freeze([[1, 0], [-1, 0], [0, 1], [0, -1]]);
+const DIAGONAL_DIRECTIONS = Object.freeze([[1, 1], [1, -1], [-1, 1], [-1, -1]]);
+const ALL_DIRECTIONS = Object.freeze([...ORTHOGONAL_DIRECTIONS, ...DIAGONAL_DIRECTIONS]);
+const KNIGHT_OFFSETS = Object.freeze([
+  [1, 2], [2, 1], [2, -1], [1, -2],
+  [-1, -2], [-2, -1], [-2, 1], [-1, 2]
+]);
+
 function pawnMoves(state, level, unit) {
   const moves = [];
   const dy = unit.team === 'player' ? -1 : 1;
@@ -75,9 +98,15 @@ export function optionsFor(state, level, unit) {
 
   switch (unit.moveProfile) {
     case 'orthogonal':
-      return validLineMoves(state, level, unit, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
+      return validLineMoves(state, level, unit, ORTHOGONAL_DIRECTIONS);
     case 'diagonal':
-      return validLineMoves(state, level, unit, [[1, 1], [1, -1], [-1, 1], [-1, -1]]);
+      return validLineMoves(state, level, unit, DIAGONAL_DIRECTIONS);
+    case 'queen':
+      return validLineMoves(state, level, unit, ALL_DIRECTIONS);
+    case 'king':
+      return validStepMoves(state, level, unit, ALL_DIRECTIONS);
+    case 'knight':
+      return validStepMoves(state, level, unit, KNIGHT_OFFSETS);
     case 'pawn':
       return pawnMoves(state, level, unit);
     default:

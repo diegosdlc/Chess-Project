@@ -261,6 +261,8 @@ button{font:inherit;letter-spacing:.02em}
 .result-dialog{padding:0;border:none;background:transparent}
 .result-dialog::backdrop{background:rgba(53,47,34,.48)}
 .settings-dialog{padding:0;border:none;background:transparent}.settings-dialog::backdrop{background:rgba(53,47,34,.48)}
+.faction-dialog{padding:0;border:none;background:transparent}
+.faction-dialog::backdrop{background:rgba(53,47,34,.52)}
 .modal-card{
   min-width:min(92vw,420px);
   max-width:520px;
@@ -277,6 +279,51 @@ button{font:inherit;letter-spacing:.02em}
 .modal-card h3{font-size:1.1rem;margin-top:6px}
 .modal-card p{margin:10px 0 0;line-height:1.45}
 .settings-card{position:relative;text-align:left}.settings-card h2{color:var(--ink)}.dialog-close{position:absolute;top:12px;right:14px;border:0;background:transparent;color:var(--pencil);font-size:1.8rem;line-height:1;cursor:pointer}.settings-list{margin-top:18px;border-top:1px dashed #a69b7f}.settings-list div{display:flex;justify-content:space-between;gap:18px;padding:14px 0;border-bottom:1px dashed #a69b7f}.settings-list strong{color:#778278;font-family:Arial,sans-serif;font-size:.72rem;text-transform:uppercase}
+.faction-selection-card{position:relative;width:min(92vw,520px);text-align:left}
+.faction-selection-card h2{color:var(--ink)}
+.faction-intro{color:#59645a}
+.faction-options{display:grid;gap:10px;margin-top:18px}
+.faction-option{
+  --faction-primary:#9acb9e;
+  --faction-secondary:#4d8559;
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:11px 13px;
+  border:2px solid var(--faction-secondary);
+  border-radius:3px 9px 4px 8px;
+  background:rgba(255,250,238,.76);
+  color:var(--ink);
+  text-align:left;
+  box-shadow:3px 4px 0 rgba(57,53,39,.18);
+  cursor:pointer;
+  transition:transform .14s ease,box-shadow .14s ease,background .14s ease;
+}
+.faction-option:hover,.faction-option:focus-visible{
+  transform:translate(2px,1px) rotate(.15deg);
+  background:rgba(255,253,246,.96);
+  box-shadow:1px 3px 0 rgba(57,53,39,.18);
+}
+.faction-option strong,.faction-option small{display:block}
+.faction-option strong{font-size:1rem}
+.faction-option small{margin-top:3px;color:#626b62;font-size:.72rem}
+.faction-piece{
+  width:48px;
+  height:48px;
+  flex:0 0 48px;
+  display:grid;
+  place-items:center;
+  border:2px solid rgba(255,255,245,.76);
+  border-radius:46% 42% 48% 44%;
+  background:linear-gradient(145deg,var(--faction-primary),var(--faction-secondary));
+  color:#fffdf4;
+  font:1.65rem/1 "Segoe UI Symbol","Noto Sans Symbols 2",sans-serif;
+  text-shadow:0 2px 3px rgba(0,0,0,.48);
+  box-shadow:0 5px 8px rgba(49,42,30,.24);
+}
+.faction-red{--faction-primary:#d47268;--faction-secondary:#792b2b}
+.faction-yellow{--faction-primary:#e1bd50;--faction-secondary:#87611b}
 .end-card .results-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;text-align:left}
 .end-card ul{margin:8px 0 0;padding-left:20px}
 .result-actions{display:grid;gap:8px}

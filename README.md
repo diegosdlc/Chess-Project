@@ -34,13 +34,15 @@ Levels can define:
 - tutorial tooltip steps anchored to a unit, cell or the board;
 - the next campaign level.
 
-## Faction-specific pieces
+## Factions and pieces
 
-Add artwork under `assets/pieces/<faction>/` and register the paths in `src/content/factions.js`. Piece rendering automatically uses the faction art when available and keeps the current glyph as a fallback.
+The playable factions are **Verde**, **Roja** and **Amarilla**. A starting band always contains a king, queen and pawn plus its faction piece: bishop for Verde, rook for Roja and knight for Amarilla. New games ask the player to choose a faction before the tutorial; the tutorial opponent is always Verde.
+
+Pieces use the original CSS token style with chess glyphs. The optional artwork lookup remains available for future levels, but no faction currently assigns bitmap piece art. When both sides are Verde, the player's pieces use the light palette and the AI uses the dark palette.
 
 ## Tutorial preview
 
-The first level includes a three-step tutorial definition but keeps it off by default so the current clean board UI remains unchanged. Open the game with `?tutorial=1` to force the tutorial on.
+The first level includes a three-step tutorial definition but keeps it off by default so the current clean board UI remains unchanged. Open the game with `?level=tutorial-01&tutorial=1` to force the tutorial on.
 
 A specific level can also be opened with `?level=<level-id>`.
 

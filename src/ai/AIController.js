@@ -8,8 +8,11 @@ export class AIController {
     this.thinkDelayMs = config.thinkDelayMs ?? 450;
     this.values = {
       pawn: 100,
+      knight: 320,
       bishop: 320,
       rook: 500,
+      queen: 900,
+      king: 1000,
       ...(config.pieceValues ?? {})
     };
     this.weights = {

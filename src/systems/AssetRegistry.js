@@ -12,7 +12,8 @@ export class AssetRegistry {
   }
 
   piecePalette(unit) {
-    return this.faction(unit.faction)?.palette ?? null;
+    const faction = this.faction(unit.faction);
+    return faction?.palettes?.[unit.team] ?? faction?.palette ?? null;
   }
 
   resolve(path) {

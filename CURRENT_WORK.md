@@ -22,7 +22,7 @@ Work in progress on `feature/level-ui-rework`.
 - The old corner settings entry point is hidden in the level UI. The old settings dialog remains available from the home screen for compatibility.
 - The old visible volume menu is hidden but retained as the compatibility bridge to the existing `AudioManager`. A new mute button toggles between zero and the last non-zero volume. Fine volume control is exposed from the notebook's Ajustes page.
 - A pause button and informational pause dialog are present. This iteration blocks board pointer interaction while the dialog is open; engine-level pausing of AI timers/state is still pending and must be implemented before pause is considered gameplay-complete.
-- The **Banda** section reserves the UI/content model for deployment. Actual drag/select deployment into the player's two nearest rows is not wired to `GameState` yet.
+- The **Banda** section explains the three faction pieces and the fixed tutorial starting-band composition. Manual drag/select deployment is not wired to `GameState` yet.
 - The menu-to-level shared-notebook FLIP transition is intentionally not part of this branch yet.
 
 ## Existing start screen
@@ -34,6 +34,12 @@ The illustrated start screen is implemented on `main` with **New Game**, **Conti
 A session snapshot is saved in browser local storage after a game starts and after each completed move. Finished matches clear the in-progress session. Campaign progression continues to use `ProgressionStore`.
 
 The no-legal-moves lifecycle is implemented: a blocked side loses its turn; if neither side has a legal move, the encounter ends with `Tablas` and offers `Reiniciar encuentro`. Human and AI use the same legal-move source.
+
+## Tutorial factions and starting bands
+
+The game now defines three simply named factions: Verde (special piece: bishop), Roja (rook) and Amarilla (knight). A reusable starting-band factory supplies king, queen, pawn and the selected faction's special piece. New Game opens a faction selector before constructing the tutorial level, while the tutorial opponent is always a green starting band. Green player pieces use a light palette and green AI pieces use a dark palette.
+
+The bitmap paper pieces are no longer assigned to factions. Gameplay has returned to the original CSS token graphics with chess glyphs; the asset files remain in the repository but are unused. Piece and faction display names are the plain chess/color names.
 
 ## Local development
 

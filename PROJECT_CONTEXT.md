@@ -73,6 +73,10 @@ These decisions come from the development history and should be preserved unless
 12. The game opens on a start screen. In-progress sessions are persisted in browser local storage as a level id plus board state and active turn; selections and incomplete capture choices are intentionally transient. Completed matches clear that session, while campaign progression remains separate.
 13. The current UI language is paper-cut collage with pencil-like linework. Prefer CSS-native texture and hand-drawn treatment for UI chrome; keep the game board and piece artwork data-driven.
 14. The official game name is **Turn Over**. Do not introduce new player-facing references to the former working names.
+15. The factions use plain color names: **Verde**, **Roja** and **Amarilla**. Their special pieces are alfil, torre and caballo respectively.
+16. A starting band contains rey, reina, peón and the faction's special piece. The tutorial opponent is always a green starting band.
+17. The player chooses a faction before starting a new tutorial game. When both sides are green, the player's green is light and the AI's green is dark.
+18. Pieces currently use the original CSS token graphics with chess glyphs. Bitmap piece artwork is optional infrastructure and is not assigned to the current factions.
 
 ## Turn-blocking rule
 

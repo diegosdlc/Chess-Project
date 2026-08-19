@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#efefeb" />
     <title>Turn Over</title>
-    <link rel="stylesheet" href="./src/styles.css?v=20260819-3" />
+    <link rel="stylesheet" href="./src/styles.css?v=20260819-4" />
     <link rel="stylesheet" href="./src/home-screen.css?v=20260819-0055" />
     <link rel="stylesheet" href="./src/audio-controls.css?v=20260814-1700" />
     <link rel="stylesheet" href="./src/level-ui.css?v=20260819-0055" />
@@ -104,6 +104,29 @@
       <div id="result-content"></div>
     </dialog>
 
+    <dialog id="faction-dialog" class="faction-dialog" aria-labelledby="faction-title">
+      <section class="modal-card faction-selection-card">
+        <button id="close-faction-selection" class="dialog-close" type="button" aria-label="Cerrar selección">×</button>
+        <p class="eyebrow">Nueva partida</p>
+        <h2 id="faction-title">Elige una facción</h2>
+        <p class="faction-intro">Tu banda comenzará con rey, reina, peón y la pieza especial de la facción.</p>
+        <div class="faction-options">
+          <button class="faction-option faction-green" type="button" data-player-faction="green">
+            <span class="faction-piece" aria-hidden="true">♝</span>
+            <span><strong>Verde</strong><small>Pieza especial: alfil</small></span>
+          </button>
+          <button class="faction-option faction-red" type="button" data-player-faction="red">
+            <span class="faction-piece" aria-hidden="true">♜</span>
+            <span><strong>Roja</strong><small>Pieza especial: torre</small></span>
+          </button>
+          <button class="faction-option faction-yellow" type="button" data-player-faction="yellow">
+            <span class="faction-piece" aria-hidden="true">♞</span>
+            <span><strong>Amarilla</strong><small>Pieza especial: caballo</small></span>
+          </button>
+        </div>
+      </section>
+    </dialog>
+
     <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
       <section class="modal-card settings-card">
         <button id="close-settings" class="dialog-close" type="button" aria-label="Cerrar ajustes">×</button>
@@ -117,7 +140,7 @@
       </section>
     </dialog>
 
-    <script type="module" src="./src/main.js?v=20260819-1"></script>
-    <script type="module" src="./src/level-ui.js?v=20260819-1"></script>
+    <script type="module" src="./src/main.js?v=20260819-2"></script>
+    <script type="module" src="./src/level-ui.js?v=20260819-2"></script>
   </body>
 </html>

@@ -2,11 +2,11 @@ const NOTEBOOK_SECTIONS = {
   band: [
     {
       title: 'Banda',
-      html: '<p>Tu banda se gestionará desde aquí.</p><p>Esta sección queda preparada para el despliegue inicial de piezas sobre las dos filas más cercanas al jugador.</p>'
+      html: '<p>Tu banda inicial incluye rey, reina y peón.</p><p>La cuarta pieza depende de tu facción: alfil para Verde, torre para Roja y caballo para Amarilla.</p>'
     },
     {
-      title: 'Banda · despliegue',
-      html: '<p>El flujo de despliegue se conectará al estado de partida en la siguiente iteración.</p><p>La interfaz ya reserva este espacio para el roster, selección de pieza y confirmación del despliegue.</p>'
+      title: 'Banda · facciones',
+      html: '<p>La facción se elige antes de comenzar una nueva partida.</p><p>En el tutorial, la banda rival siempre es Verde y su pieza especial es el alfil.</p>'
     }
   ],
   mission: [

@@ -1,48 +1,15 @@
 import { GAME_CONFIG } from './config/gameConfig.js';
-import { FACTIONS } from './content/factions.js';
+import { FACTIONS, PLAYER_FACTION_IDS } from './content/factions.js';
 import { getLevel, getNextLevel } from './content/levels/index.js';
 import { GameState } from './core/GameState.js';
 import { AssetRegistry } from './systems/AssetRegistry.js';
 import { AudioManager } from './systems/AudioManager.js?v=20260814-1700';
+import { GameSessionStore } from './systems/GameSessionStore.js';
 import { ProgressionStore } from './systems/ProgressionStore.js';
 import { TutorialSystem } from './systems/TutorialSystem.js';
 import { BoardRenderer } from './render/BoardRenderer.js';
 import { AIController } from './ai/AIController.js';
 import { legalActionsFor } from './core/rules.js';
-
-class GameSessionStore {
-  constructor(storageKey) {
-    this.storageKey = storageKey;
-  }
-
-  load() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(this.storageKey));
-      return saved?.levelId && saved?.state ? saved : null;
-    } catch {
-      return null;
-    }
-  }
-
-  save(levelId, state) {
-    try {
-      localStorage.setItem(this.storageKey, JSON.stringify({
-        levelId,
-        state: { units: state.units, currentTurn: state.currentTurn, finished: state.finished }
-      }));
-    } catch {
-      // Storage is optional.
-    }
-  }
-
-  clear() {
-    try {
-      localStorage.removeItem(this.storageKey);
-    } catch {
-      // Storage is optional.
-    }
-  }
-}
 
 class GameApp {
   constructor() {
@@ -52,10 +19,15 @@ class GameApp {
     this.resultDialog = document.querySelector('#result-dialog');
     this.resultContent = document.querySelector('#result-content');
     this.settingsDialog = document.querySelector('#settings-dialog');
+    this.factionDialog = document.querySelector('#faction-dialog');
     this.assets = new AssetRegistry(FACTIONS);
     this.audio = new AudioManager();
     this.progression = new ProgressionStore(GAME_CONFIG.progressionStorageKey, GAME_CONFIG.defaultLevelId);
-    this.session = new GameSessionStore(GAME_CONFIG.sessionStorageKey ?? 'bandas-del-tablero:session:v1');
+    this.session = new GameSessionStore(
+      GAME_CONFIG.sessionStorageKey ?? 'bandas-del-tablero:session:v1',
+      GAME_CONFIG.sessionSchemaVersion ?? 1,
+      PLAYER_FACTION_IDS
+    );
     this.tutorial = new TutorialSystem({ storagePrefix: GAME_CONFIG.tutorialStoragePrefix });
     this.level = null;
     this.state = null;
@@ -81,15 +53,31 @@ class GameApp {
   }
 
   bindMenu() {
-    document.querySelector('#new-game').addEventListener('click', () => { this.session.clear(); this.startGame(getLevel(GAME_CONFIG.defaultLevelId)); });
+    document.querySelector('#new-game').addEventListener('click', () => this.openFactionSelection());
     document.querySelector('#continue-game').addEventListener('click', () => this.continueGame());
     document.querySelector('#home-settings').addEventListener('click', () => this.openSettings());
     document.querySelector('#game-settings').addEventListener('click', () => this.openSettings());
     document.querySelector('#close-settings').addEventListener('click', () => this.settingsDialog.close());
+    document.querySelector('#close-faction-selection').addEventListener('click', () => this.factionDialog.close());
+    document.querySelectorAll('[data-player-faction]').forEach(button => {
+      button.addEventListener('click', () => this.startNewGame(button.dataset.playerFaction));
+    });
+  }
+
+  openFactionSelection() {
+    if (!this.factionDialog.open) this.factionDialog.showModal();
+  }
+
+  startNewGame(playerFactionId) {
+    if (!PLAYER_FACTION_IDS.includes(playerFactionId)) return;
+    this.session.clear();
+    if (this.factionDialog.open) this.factionDialog.close();
+    this.startGame(getLevel(GAME_CONFIG.defaultLevelId, { playerFactionId }));
   }
 
   showHome() {
     this.cancelAiTurn();
+    if (this.factionDialog.open) this.factionDialog.close();
     this.gameShell.hidden = true;
     this.homeScreen.hidden = false;
     document.querySelector('#continue-game').disabled = !this.session.load();
@@ -103,7 +91,7 @@ class GameApp {
 
   continueGame() {
     const saved = this.session.load();
-    const level = saved && getLevel(saved.levelId);
+    const level = saved && getLevel(saved.levelId, { playerFactionId: saved.playerFactionId });
     if (!level) { this.session.clear(); this.showHome(); return; }
     this.startGame(level, { savedState: saved.state });
   }
@@ -144,7 +132,7 @@ class GameApp {
   }
 
   saveSession() {
-    if (this.level && this.state && !this.state.finished) this.session.save(this.level.id, this.state);
+    if (this.level && this.state && !this.state.finished) this.session.save(this.level, this.state);
   }
 
   resetLevel() {
@@ -472,6 +460,9 @@ class GameApp {
 
   factionName(team) {
     const factionId = this.level.teams[team];
+    if (factionId === 'green' && this.level.teams.player === this.level.teams.enemy) {
+      return team === 'player' ? 'Verde clara' : 'Verde oscura';
+    }
     return FACTIONS[factionId]?.name ?? team;
   }
 }

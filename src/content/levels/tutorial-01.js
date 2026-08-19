@@ -1,6 +1,25 @@
-export const tutorial01 = Object.freeze({
+import { createInitialBand } from '../bands.js';
+
+const PLAYER_POSITIONS = Object.freeze({
+  king: { x: 2, y: 7 },
+  queen: { x: 3, y: 7 },
+  pawn: { x: 3, y: 6 },
+  bishop: { x: 0, y: 7 },
+  knight: { x: 0, y: 7 },
+  rook: { x: 0, y: 7 }
+});
+
+const ENEMY_POSITIONS = Object.freeze({
+  king: { x: 5, y: 0 },
+  queen: { x: 4, y: 0 },
+  pawn: { x: 4, y: 1 },
+  bishop: { x: 6, y: 0 }
+});
+
+export function createTutorial01({ playerFactionId = 'green' } = {}) {
+  return Object.freeze({
   id: 'tutorial-01',
-  name: 'Encuentro en el bosque',
+  name: 'Tutorial',
   nextLevelId: null,
   board: {
     size: 8,
@@ -20,8 +39,8 @@ export const tutorial01 = Object.freeze({
     }
   },
   teams: {
-    player: 'verdant',
-    enemy: 'cinder'
+    player: playerFactionId,
+    enemy: 'green'
   },
   music: {
     track: './assets/music/magiksolo-pirate-tavern-full-version-167990.mp3',
@@ -38,12 +57,8 @@ export const tutorial01 = Object.freeze({
     captureChoice: true
   },
   units: [
-    { id: 'warden', team: 'player', faction: 'verdant', name: 'Guardia del Roble', pieceType: 'rook', fallbackGlyph: '♜', x: 1, y: 6, moveProfile: 'orthogonal' },
-    { id: 'seer', team: 'player', faction: 'verdant', name: 'Vidente de Musgo', pieceType: 'bishop', fallbackGlyph: '♝', x: 3, y: 7, moveProfile: 'diagonal' },
-    { id: 'scout', team: 'player', faction: 'verdant', name: 'Exploradora', pieceType: 'pawn', fallbackGlyph: '♟', x: 5, y: 6, moveProfile: 'pawn' },
-    { id: 'brute', team: 'enemy', faction: 'cinder', name: 'Bruto de Ceniza', pieceType: 'rook', fallbackGlyph: '♜', x: 6, y: 1, moveProfile: 'orthogonal' },
-    { id: 'hexer', team: 'enemy', faction: 'cinder', name: 'Tejedora Escarlata', pieceType: 'bishop', fallbackGlyph: '♝', x: 4, y: 0, moveProfile: 'diagonal' },
-    { id: 'raider', team: 'enemy', faction: 'cinder', name: 'Saqueador', pieceType: 'pawn', fallbackGlyph: '♟', x: 2, y: 1, moveProfile: 'pawn' }
+    ...createInitialBand({ team: 'player', factionId: playerFactionId, positions: PLAYER_POSITIONS }),
+    ...createInitialBand({ team: 'enemy', factionId: 'green', positions: ENEMY_POSITIONS })
   ],
   // Blocking elements participate in movement rules. Add an `asset` path to render artwork.
   boardElements: [],
@@ -55,13 +70,13 @@ export const tutorial01 = Object.freeze({
       {
         id: 'select-piece',
         text: 'Toca una de tus piezas para ver sus movimientos posibles.',
-        anchor: { type: 'unit', id: 'warden' },
+        anchor: { type: 'unit', id: 'player-king' },
         advanceOn: 'unit-selected'
       },
       {
         id: 'move-piece',
         text: 'Las casillas verdes son movimientos disponibles. Toca una para mover.',
-        anchor: { type: 'cell', x: 1, y: 5 },
+        anchor: { type: 'cell', x: 2, y: 6 },
         advanceOn: 'move-completed'
       },
       {
@@ -72,4 +87,7 @@ export const tutorial01 = Object.freeze({
       }
     ]
   }
-});
+  });
+}
+
+export const tutorial01 = createTutorial01();

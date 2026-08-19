@@ -1,33 +1,47 @@
 export const FACTIONS = Object.freeze({
-  verdant: {
-    id: 'verdant',
-    name: 'Guardia del Roble',
-    palette: {
-      primary: '#6d8574',
-      secondary: '#253229',
-      text: '#f7f7f4'
+  green: {
+    id: 'green',
+    name: 'Verde',
+    specialPieceType: 'bishop',
+    palettes: {
+      player: {
+        primary: '#9acb9e',
+        secondary: '#4d8559',
+        text: '#fffdf4'
+      },
+      enemy: {
+        primary: '#55755d',
+        secondary: '#203c2a',
+        text: '#fffdf4'
+      }
     },
-    pieceAssets: {
-      rook: './assets/pieces/paper/rook.png',
-      bishop: './assets/pieces/paper/bishop.png',
-      pawn: './assets/pieces/paper/pawn.png'
-    }
+    pieceAssets: {}
   },
-  cinder: {
-    id: 'cinder',
-    name: 'Banda de Ceniza',
+  red: {
+    id: 'red',
+    name: 'Roja',
+    specialPieceType: 'rook',
     palette: {
-      primary: '#9f5252',
-      secondary: '#461818',
-      text: '#f7f7f4'
+      primary: '#d47268',
+      secondary: '#792b2b',
+      text: '#fffdf4'
     },
-    pieceAssets: {
-      rook: './assets/pieces/paper/rook.png',
-      bishop: './assets/pieces/paper/bishop.png',
-      pawn: './assets/pieces/paper/pawn.png'
-    }
+    pieceAssets: {}
+  },
+  yellow: {
+    id: 'yellow',
+    name: 'Amarilla',
+    specialPieceType: 'knight',
+    palette: {
+      primary: '#e1bd50',
+      secondary: '#87611b',
+      text: '#fffdf4'
+    },
+    pieceAssets: {}
   }
 });
+
+export const PLAYER_FACTION_IDS = Object.freeze(['green', 'red', 'yellow']);
 
 export function getFaction(factionId) {
   return FACTIONS[factionId] ?? null;

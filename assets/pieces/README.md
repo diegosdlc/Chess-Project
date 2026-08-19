@@ -1,10 +1,12 @@
 # Piece assets
 
-Store faction-specific piece artwork in subfolders, for example:
+The current factions intentionally use the CSS token graphics and do not register bitmap artwork. The existing files are retained as unused references.
 
-- `assets/pieces/verdant/rook.webp`
-- `assets/pieces/verdant/bishop.webp`
-- `assets/pieces/cinder/rook.webp`
+If a future level needs faction-specific artwork, store it in subfolders, for example:
+
+- `assets/pieces/green/bishop.webp`
+- `assets/pieces/red/rook.webp`
+- `assets/pieces/yellow/knight.webp`
 
 Then register each file in `src/content/factions.js` under the faction's `pieceAssets` map.
 
