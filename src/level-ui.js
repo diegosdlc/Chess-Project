@@ -32,7 +32,7 @@ const NOTEBOOK_SECTIONS = {
   settings: [
     {
       title: 'Ajustes',
-      html: '<div class="notebook-settings-row"><label for="notebook-volume">Música</label><input id="notebook-volume" type="range" min="0" max="100" step="1" value="45" aria-label="Volumen de la música"></div><p>El botón de altavoz junto al cuaderno permite silenciar o recuperar el volumen con una sola pulsación.</p>'
+      html: '<div class="notebook-settings-row"><label for="notebook-volume">Música</label><input id="notebook-volume" type="range" min="0" max="100" step="1" value="45" aria-label="Volumen de la música"></div><p>El botón de altavoz junto al cuaderno permite silenciar o recuperar el volumen con una sola pulsación.</p><button id="notebook-main-menu" class="notebook-menu-button" type="button">Volver al menú principal</button>'
     }
   ]
 };
@@ -86,6 +86,9 @@ class NotebookUI {
   }
 
   bindSettingsControls() {
+    const mainMenu = this.root.querySelector('#notebook-main-menu');
+    mainMenu?.addEventListener('click', () => window.dispatchEvent(new Event('game:return-home')));
+
     const volume = this.root.querySelector('#notebook-volume');
     const legacy = document.querySelector('#music-volume');
     if (!volume || !legacy) return;

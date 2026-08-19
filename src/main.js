@@ -69,6 +69,7 @@ class GameApp {
     const requestedLevelId = params.get(GAME_CONFIG.levelQueryParam);
     const forceTutorial = params.get(GAME_CONFIG.tutorialQueryParam) === '1';
     this.bindMenu();
+    window.addEventListener('game:return-home', () => this.showHome());
     if (requestedLevelId) this.startGame(getLevel(requestedLevelId) ?? getLevel(GAME_CONFIG.defaultLevelId), { forceTutorial });
     else this.showHome();
 

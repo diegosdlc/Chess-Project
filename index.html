@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#efefeb" />
     <title>Turn Over</title>
-    <link rel="stylesheet" href="./src/styles.css?v=20260814-1700" />
+    <link rel="stylesheet" href="./src/styles.css?v=20260819-3" />
     <link rel="stylesheet" href="./src/home-screen.css?v=20260819-0055" />
     <link rel="stylesheet" href="./src/audio-controls.css?v=20260814-1700" />
     <link rel="stylesheet" href="./src/level-ui.css?v=20260819-0055" />
@@ -49,7 +49,7 @@
 
         <div class="game-controls" aria-label="Controles de partida">
           <button id="mute-toggle" class="game-control-button" type="button" aria-label="Silenciar música" aria-pressed="false">🔊</button>
-          <button id="pause-toggle" class="game-control-button" type="button" aria-label="Pausar partida">Ⅱ</button>
+          <button id="pause-toggle" class="game-control-button" type="button" aria-label="Pausar partida">⏸</button>
         </div>
 
         <button id="game-settings" type="button" hidden aria-hidden="true">Ajustes</button>
@@ -93,11 +93,9 @@
 
     <dialog id="pause-dialog" class="pause-dialog" aria-labelledby="pause-title">
       <section class="modal-card pause-card">
-        <p class="eyebrow">Partida</p>
         <h2 id="pause-title">Pausa</h2>
-        <p>La interacción con el tablero queda bloqueada mientras este mensaje está abierto.</p>
         <div class="result-actions">
-          <button id="resume-game" class="primary-button" type="button">Continuar</button>
+          <button id="resume-game" class="primary-button" type="button">Reanudar</button>
         </div>
       </section>
     </dialog>
@@ -119,7 +117,7 @@
       </section>
     </dialog>
 
-    <script type="module" src="./src/main.js?v=20260814-1700"></script>
-    <script type="module" src="./src/level-ui.js?v=20260818-1930"></script>
+    <script type="module" src="./src/main.js?v=20260819-1"></script>
+    <script type="module" src="./src/level-ui.js?v=20260819-1"></script>
   </body>
 </html>
