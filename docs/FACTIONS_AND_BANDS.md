@@ -37,6 +37,8 @@ Each generated unit receives:
 
 `team`, `faction` and `facing` are intentionally independent. A piece can change controlling band or turn around without changing its faction identity or artwork family.
 
+For levels with pre-match deployment, the deployment team's declared starting coordinates are cleared when `GameState.reset()` enters the deployment phase. The band/faction/facing data remains intact while the player chooses the final deployment coordinates. See `docs/DEPLOYMENT.md`.
+
 ## Piece facing
 
 Pieces currently support two board-relative orientations:
@@ -65,13 +67,17 @@ Choosing **Nueva partida** opens the faction selector before the tutorial begins
 
 The tutorial opponent is always Verde and therefore always starts with Rey, Reina, Peón and Alfil.
 
-`createTutorial01()` in `src/content/levels/tutorial-01.js` builds a fresh level definition for the chosen player faction. The level registry calls level factories rather than returning one shared mutable tutorial object. Resetting a match consequently restores the correct selected formation and initial facing from the active level definition.
+`createTutorial01()` in `src/content/levels/tutorial-01.js` builds a fresh level definition for the chosen player faction. The level registry calls level factories rather than returning one shared mutable tutorial object.
+
+The tutorial now begins with player deployment. The player band is created with its faction and north-facing state, then held off-board until the player places all four pieces on rows `6` and `7` and presses **Iniciar partida**. The enemy green band keeps its declared starting coordinates and south-facing state.
+
+Resetting the tutorial recreates the selected faction, initial facing, obstacles and deployment phase from the active level definition.
 
 Opening a level directly with `?level=tutorial-01` is a development shortcut and uses Verde as the default player faction. The normal **Nueva partida** flow always asks the player to choose.
 
 ## Piece graphics and faction colours
 
-Current pieces still use the CSS token treatment when no bitmap artwork is configured: a coloured gradient token, light border, shadow and chess glyph. The fallback remains valid while faction-specific artwork is produced.
+Current production pieces still use the CSS token treatment when no bitmap artwork is configured: a coloured gradient token, light border, shadow and chess glyph. The fallback remains valid while faction-specific artwork is produced.
 
 Piece artwork belongs to the **origin faction**, not to the controlling team. Each faction can define a different graphic for every piece type and both orientations. The target `pieceAssets` contract is:
 
@@ -88,16 +94,18 @@ pieceAssets: {
 }
 ```
 
-`AssetRegistry.pieceAsset()` resolves artwork as `faction -> pieceType -> facing`. It also accepts the previous single-string piece asset shape as a temporary compatibility fallback.
+`AssetRegistry.pieceAsset()` resolves artwork as `faction -> pieceType -> facing`. It also accepts the previous single-string piece asset shape as a compatibility fallback.
 
 This means a recruited red rook remains visually a red rook even if another band controls it, while its `facing` may change independently during play.
+
+The current `facing-lab` can override piece artwork per unit with temporary north/south SVGs so the orientation contract can be tested before final faction art is available. This test-only override does not make those SVGs production faction artwork.
 
 Green has role-specific fallback palettes:
 
 - player-controlled green is light;
 - AI-controlled green is dark.
 
-`AssetRegistry.piecePalette()` selects the team-specific green palette. Red and yellow currently use one player palette each. When a green player faces the green tutorial opponent, result and turn messages use **Verde clara** and **Verde oscura** to remain unambiguous.
+`AssetRegistry.piecePalette()` selects the team-specific green palette. Red and yellow currently use their configured fallback palettes. When a green player faces the green tutorial opponent, result and turn messages use **Verde clara** and **Verde oscura** to remain unambiguous.
 
 ## Movement and AI
 
@@ -118,24 +126,36 @@ Turn Over does not currently implement chess check, checkmate, castling, promoti
 
 ## Session persistence
 
-An in-progress session stores the level id, selected player faction, units and active turn. Because units are serialized as state, their current `facing` is persisted automatically.
+An in-progress session stores:
 
-`GameSessionStore` validates the faction against `PLAYER_FACTION_IDS` before allowing **Continuar partida**.
+- the level id;
+- selected player faction;
+- serialized units, including each unit's current `facing` and coordinates;
+- active turn;
+- finished state;
+- lifecycle `phase` (`deployment` or `play`).
 
-The session schema is version `3`. Version `2` snapshots are intentionally ignored because their units do not contain explicit facing. The legacy browser-storage key itself remains unchanged.
+Because facing is part of the serialized unit state, orientation persists automatically. During deployment, placed pieces keep their chosen coordinates while undeployed pieces remain off-board with null coordinates.
+
+`GameSessionStore` validates the player faction against `PLAYER_FACTION_IDS` before allowing **Continuar partida**.
+
+The session schema is version `3`. Version `2` snapshots are intentionally ignored because their units do not contain explicit facing. A schema-compatible snapshot without a `phase` field is treated as normal play for backward compatibility with the pre-deployment version of schema 3. The legacy browser-storage key itself remains unchanged.
 
 ## Relevant files
 
 - `src/content/factions.js` — faction identities, special pieces, palettes and faction-specific artwork definitions.
 - `src/content/bands.js` — piece catalogue, `FACINGS` and reusable starting-band factory.
-- `src/content/levels/tutorial-01.js` — faction-aware tutorial factory, coordinates and initial facing.
-- `src/content/levels/index.js` — level factory registry.
-- `src/main.js` — faction-selection flow and level startup.
-- `src/core/GameState.js` — mutable unit state plus explicit facing operations.
-- `src/systems/GameSessionStore.js` — faction-aware session snapshots, including unit facing.
+- `src/content/levels/tutorial-01.js` — faction-aware tutorial factory, obstacles, deployment and initial facing.
+- `src/content/levels/index.js` — normal level factory registry.
+- `src/content/levels/labs/index.js` — mechanics-lab registry.
+- `src/main.js` — faction-selection, deployment and level startup flow.
+- `src/core/GameState.js` — mutable unit state, facing operations and deployment phase.
+- `src/systems/GameSessionStore.js` — faction-aware session snapshots, including unit facing and lifecycle phase.
 - `src/systems/AssetRegistry.js` — team-aware palette selection and faction/type/facing artwork lookup.
 - `src/core/rules.js` — shared movement profiles and legal actions.
 - `src/ai/AIController.js` — shared piece values and search.
+- `docs/DEPLOYMENT.md` — deployment contract.
+- `docs/FACING_LAB.md` — orientation test scenario.
 
 ## Extending the system
 
@@ -144,9 +164,10 @@ When adding a new level that starts from standard bands:
 1. Define coordinates for Rey, Reina, Peón and every special piece that the level can instantiate.
 2. Choose the initial `facing` for each band explicitly.
 3. Call `createInitialBand()` separately for the player and enemy teams.
-4. Keep faction choice and initial facing in level configuration; do not branch inside the rules engine or AI.
-5. Ensure generated ids remain unique within the level.
-6. Validate that every starting piece has at least one legal move and that the opening does not contain accidental immediate captures.
+4. If the level uses deployment, add the `deployment` configuration and remember that the deployment team's declared coordinates will be cleared until placement is confirmed.
+5. Keep faction choice, facing and deployment in level configuration; do not branch inside the rules engine or AI for a specific level id.
+6. Ensure generated ids remain unique within the level.
+7. Validate that deployment has enough legal cells when enabled, or that every starting piece has appropriate legal movement when deployment is not used.
 
 When adding final art for a faction, define the available piece sprites under that faction's `pieceAssets`, keyed first by `pieceType` and then by `north` / `south`.
 

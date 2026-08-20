@@ -1,40 +1,47 @@
 # Turn Over
 
-A lightweight browser game with a data-driven structure for levels, factions, assets and tutorial UI. There is no build step: serve the repository with any static HTTP server and open `index.html`. Do not open `index.html` directly with `file:///`: Chromium browsers may display the styling but block the JavaScript modules.
+A lightweight browser strategy game with a data-driven structure for levels, factions, assets, deployment, tutorials and mechanics testing. There is no build step: serve the repository with any static HTTP server and open `index.html`.
+
+Do not open `index.html` directly with `file:///`: Chromium browsers may display the styling but block JavaScript modules.
 
 ## Project structure
 
-- `src/main.js` — application controller and level lifecycle.
+- `src/main.js` — application controller, lifecycle orchestration, deployment and turn flow.
 - `src/core/` — game state, geometry and movement rules.
-- `src/render/` — board/piece/terrain rendering.
+- `src/ai/` — reusable AI over the shared legal-action generator.
+- `src/render/` — board, piece and terrain rendering.
 - `src/systems/` — assets, audio, sessions, progression and tutorial systems.
-- `src/content/factions.js` — faction identity, special pieces and palettes.
-- `src/content/bands.js` — shared piece catalogue and starting-band factory.
-- `src/content/levels/` — declarative level definitions and level registry.
-- `src/home-screen.css` — illustrated start-screen composition and animations.
+- `src/content/factions.js` — faction identity, special pieces, palettes and optional piece artwork.
+- `src/content/bands.js` — shared piece catalogue, starting-band factory and facing constants.
+- `src/content/levels/` — production levels, shared board definitions and mechanics-lab scenarios.
+- `src/content/levels/labs/` — mechanics-lab registry and reusable lab behavior helpers.
+- `src/level-ui.js` / `src/level-ui.css` — notebook navigation and in-level tabletop composition.
 - `src/deployment.css` — pre-match deployment UI and board-zone highlighting.
-- `assets/menu/` — full-canvas start-screen background, title and button artwork.
+- `assets/menu/` — illustrated start-screen artwork.
 - `assets/boards/` — board artwork.
-- `assets/pieces/` — optional piece artwork; current factions use CSS tokens.
+- `assets/pieces/` — optional faction/piece/facing artwork and development placeholders.
 - `assets/music/` — music and sound effects.
 - `assets/board-elements/` — obstacles, props and special-tile artwork.
+- `docs/` — durable implementation contracts and mechanics-lab documentation.
 
 ## Adding a level
 
-1. Create a file in `src/content/levels/` by copying `tutorial-01.js`.
-2. Give it a unique `id`, define its board, teams, units and optional content.
-3. Register it in `src/content/levels/index.js`.
-4. Set `nextLevelId` on the preceding level if it should unlock automatically after a player victory.
+1. Create a file in `src/content/levels/`, usually starting from `tutorial-01.js` or a smaller existing scenario.
+2. Give it a unique `id` and define its board, teams, units and optional content.
+3. Register it in `src/content/levels/index.js` when it is a normal game level.
+4. Set `nextLevelId` on the preceding level if campaign progression should unlock it automatically.
 
 Levels can define:
 
 - their own board artwork and isometric projection;
 - arbitrary starting units and factions;
-- an optional `deployment` block describing which team deploys and which board rows are legal;
+- explicit initial `facing` for units/bands;
+- an optional pre-match `deployment` block;
 - background music;
 - blocking `boardElements` with custom artwork;
 - visual `specialTiles` ready for level-specific mechanics;
 - tutorial tooltip steps anchored to a unit, cell or the board;
+- generic level behavior hooks;
 - the next campaign level.
 
 ## Pre-match deployment
@@ -48,32 +55,74 @@ deployment: {
 }
 ```
 
-When deployment is enabled, that team's pieces start off-board and are shown over the notebook. The player selects each piece and places it on a valid configured row. Blocking `boardElements` and occupied cells cannot be used. Once every unit is placed on a unique legal cell, **Iniciar partida** becomes available; turn resolution, AI scheduling and tutorial steps begin only after confirmation.
+When deployment is enabled, that team's pieces start off-board and are shown over the notebook. The player selects each piece and places it on a valid configured row. Occupied cells and blocking `boardElements` cannot be used. Placed pieces can be selected again and repositioned before play begins.
 
-The tutorial uses the player's two nearest rows (`6` and `7`). Deployment state and placed coordinates are included in the local session snapshot, so **Continuar partida** can resume an interrupted setup.
+Once every deployment unit occupies a unique legal cell, **Iniciar partida** becomes available. Turn resolution, AI scheduling and tutorial progression begin only after confirmation.
 
-## Factions and pieces
+The tutorial uses the player's two nearest rows (`6` and `7`). Deployment state is included in the local session snapshot, so **Continuar partida** can resume an interrupted setup.
 
-The playable factions are **Verde**, **Roja** and **Amarilla**. A starting band always contains a king, queen and pawn plus its faction piece: bishop for Verde, rook for Roja and knight for Amarilla. New games ask the player to choose a faction before the tutorial; the tutorial opponent is always Verde.
+See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for the full contract.
 
-Pieces use the original CSS token style with chess glyphs. The optional artwork lookup remains available for future levels, but no faction currently assigns bitmap piece art. When both sides are Verde, the player's pieces use the light palette and the AI uses the dark palette.
+## Factions, bands and piece facing
 
-See [`docs/FACTIONS_AND_BANDS.md`](docs/FACTIONS_AND_BANDS.md) for the full behavior and extension contract.
+Playable factions are **Verde**, **Roja** and **Amarilla**. A starting band always contains rey, reina and peón plus its faction piece: alfil for Verde, torre for Roja and caballo for Amarilla. New games ask the player to choose a faction before the tutorial; the tutorial opponent is always Verde.
+
+Units keep three independent concepts:
+
+- `team` — who currently controls the piece;
+- `faction` — the piece's origin/art family;
+- `facing` — `north` or `south` on the board.
+
+The tutorial starts the two bands facing each other: player pieces face north and enemy pieces face south. Facing is explicit game state and does not change automatically just because a unit moves.
+
+Optional artwork resolves by `faction -> pieceType -> facing`. Production factions currently fall back to the CSS chess-token treatment when final artwork is not configured. This lets a recruited piece preserve its origin faction artwork while changing team, and lets facing change independently.
+
+See [`docs/FACTIONS_AND_BANDS.md`](docs/FACTIONS_AND_BANDS.md).
+
+## Obstacles and board elements
+
+Blocking `boardElements` participate in the shared movement rules. Sliding movement stops at blockers, no unit may land on a blocking square, and knights may jump over blockers without landing on them. Human turns and AI turns use the same rules.
+
+The tutorial currently includes visible placeholder blockers. Their artwork can be replaced without changing the gameplay contract. See [`assets/board-elements/README.md`](assets/board-elements/README.md).
+
+## Mechanics labs
+
+Mechanics labs are small development levels for repeatedly exercising one mechanic without affecting production progression.
+
+Registered labs:
+
+- are automatically addressable with `?level=<lab-id>`;
+- automatically appear under **Ajustes → Laboratorios de mecánicas**;
+- should exercise the same engine operations used by production levels;
+- may use generic level behavior hooks for test-only conveniences, but core systems must not hard-code individual lab ids.
+
+The current `facing-lab` validates north/south state changes and facing-specific artwork selection.
+
+See [`docs/MECHANICS_LABS.md`](docs/MECHANICS_LABS.md) and [`docs/FACING_LAB.md`](docs/FACING_LAB.md).
 
 ## Tutorial preview
 
-The first level includes a three-step tutorial definition but keeps it off by default so the current clean board UI remains unchanged. Open the game with `?level=tutorial-01&tutorial=1` to force the tutorial on.
+The first level includes tutorial tooltip steps but keeps them off by default so the clean level UI remains unchanged. Open the game with `?level=tutorial-01&tutorial=1` to force the tutorial on.
 
-A specific level can also be opened with `?level=<level-id>`.
+A normal level or mechanics lab can also be opened directly with `?level=<level-id>`.
 
 ## Progression
 
-Player victories are persisted in local storage. The progression store tracks completed levels, unlocked levels and recruited units, which gives later campaign/menu work a stable data layer without coupling it to the board renderer.
+Player victories are persisted in local storage. `ProgressionStore` tracks completed levels, unlocked levels and recruited units, keeping campaign state separate from the active board/session state.
 
-## Start screen and local session
+## Start screen, notebook and local session
 
-The app opens on an illustrated 1536×960 start-screen composition built from full-canvas WebP layers in `assets/menu/`. The title has a short paper-placement entrance animation, and the three artwork buttons use subtle hover/focus zoom and press/tap feedback. The action IDs remain wired to the existing New Game, Continue and Settings logic.
+The app opens on an illustrated 1536×960 start-screen composition built from WebP layers in `assets/menu/`. The title has a paper-placement entrance animation and the artwork buttons use subtle hover/focus/press feedback.
 
-The filenames currently stored under `assets/menu/` include upload timestamp suffixes; `index.html` references those exact paths. If the files are renamed later, update the HTML paths in the same commit. See `assets/menu/README.md` for the current asset contract.
+The in-level UI uses a notebook with **Banda**, **Misión**, **Reglas** and **Ajustes** sections. During deployment, the notebook content area temporarily becomes the deployment panel; after **Iniciar partida**, normal notebook navigation returns.
 
-An in-progress game is saved locally during deployment, after setup and after each completed move, so **Continuar partida** can restore the active level, selected faction, pieces, lifecycle phase and turn after closing the browser. Sessions are local to the current browser/device and are cleared when the encounter ends. The settings screen is currently a UI placeholder for future music, difficulty and controls settings.
+An in-progress game is saved locally during deployment, after setup and after each completed move. **Continuar partida** restores the active level, selected faction, serialized units (including facing), lifecycle phase and turn. Sessions are local to the current browser/device and are cleared when the encounter ends.
+
+## Project documentation
+
+- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — durable architecture/product decisions and cross-device workflow.
+- [`CURRENT_WORK.md`](CURRENT_WORK.md) — current merged baseline, remaining gaps and immediate next focus.
+- [`docs/FACTIONS_AND_BANDS.md`](docs/FACTIONS_AND_BANDS.md) — faction/band/facing/artwork contract.
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — pre-match deployment contract.
+- [`docs/MECHANICS_LABS.md`](docs/MECHANICS_LABS.md) — reusable mechanics-lab workflow.
+- [`docs/FACING_LAB.md`](docs/FACING_LAB.md) — facing-lab test procedure.

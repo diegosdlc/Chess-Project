@@ -6,70 +6,99 @@ Last updated: 2026-08-20
 
 The official game name is **Turn Over**. Historical working names **Bandas del Tablero** and **Chess Project** are no longer product names. Existing browser-storage keys remain unchanged as legacy technical identifiers until an explicit migration is implemented.
 
-## Active task
+## Current main baseline
 
-Rework the in-level interface around the new tabletop composition: repositioned board, notebook navigation and compact game controls. The menu-to-level transition animation is deliberately deferred until the level UI is stable.
+`main` is the current source of truth. The recent gameplay/UI work described below has already been merged; do not treat the old feature branches as the authoritative implementation.
 
-## Pre-match deployment
+### Level UI
 
-Implemented on `feature/pre-match-deployment`.
+The tabletop level UI is on `main`.
 
-- Levels can opt into a pre-match deployment phase with a declarative `deployment` block. The tutorial uses `team: 'player'` and `rows: [6, 7]`.
-- At level start, the configured team's units are held off-board and shown over the notebook until the player places them.
-- Deployment cells are validated by `GameState`: they must belong to the configured rows, be inside the board and not contain another active unit or a blocking board element.
-- Placed pieces can be selected again and repositioned before play starts.
-- **Iniciar partida** appears only after every deployment unit occupies a valid unique cell. Normal turn resolution, tutorial steps and AI scheduling do not begin before that action.
-- Session snapshots persist `phase` as well as unit coordinates, so an interrupted deployment can be resumed. Older schema-compatible snapshots without `phase` continue as normal play.
-- Resetting a level restores its deployment phase from the level definition.
-- Deployment preserves each unit's faction and `facing`; the existing piece-orientation model and level behavior hooks remain independent.
+- `index.html` defines the full-screen level stage with a dedicated board area, notebook and compact game controls.
+- `src/level-ui.css` owns responsive viewport positioning independently from the board projection.
+- The notebook exposes **Banda**, **Misión**, **Reglas** and **Ajustes** tabs, with vertical selected-tab movement and multi-page sections.
+- Fine music volume lives in the notebook settings page; the compact mute control bridges to the existing `AudioManager`.
+- The pause dialog currently blocks pointer interaction with the board, but AI timers/state are not yet paused at engine level.
+- During deployment, the notebook temporarily gives its content area to the deployment panel. After **Iniciar partida**, normal notebook content returns.
 
-## Tutorial obstacles
+### Pre-match deployment
 
-Implemented on `feature/tutorial-obstacles`.
+Merged to `main` through PR #12.
 
-- The tutorial level now declares three blocking obstacles through its existing `boardElements` content hook.
-- Obstacles use the generic `type: 'blocker'` contract plus `blocking: true`, so future artwork can replace the current placeholders without changing movement rules.
-- The authoritative rules engine already prevents occupation/capture of blocking squares, stops sliding movement at them and lets knights jump over them without landing on them.
-- The AI consumes the same legal-action generator, so obstacle behavior is identical for human and AI turns.
-- Frozen-piece pass-through remains independent: frozen pieces can be crossed according to the existing rule, while board obstacles remain solid.
-- The obstacle contract is documented in `assets/board-elements/README.md`.
+- Levels opt in through a declarative `deployment` block. The tutorial uses `team: 'player'` and `rows: [6, 7]`.
+- The configured team's pieces start off-board and are displayed over the notebook.
+- The player selects pieces and places/repositions them on legal deployment cells.
+- `GameState` validates board bounds, configured rows, occupied cells and blocking `boardElements`.
+- **Iniciar partida** appears only when every deployment unit is placed on a unique valid cell.
+- Turn resolution, AI scheduling and tutorial progression do not begin during deployment.
+- Session snapshots persist the lifecycle `phase` and unit coordinates, so an interrupted deployment can be resumed.
+- Resetting the level recreates deployment from the level definition.
+- Deployment does not alter origin faction or `facing`.
 
-## Level UI rework status
+See `docs/DEPLOYMENT.md`.
 
-Work in progress on `feature/level-ui-rework`.
+### Piece facing and faction artwork contract
 
-- `index.html` now defines a full-screen level stage with a dedicated `board-stage`, the notebook UI and the game controls as independent layout elements.
-- The level background uses `assets/background.webp` and the notebook uses the layered WebP assets in `assets/notebook menu/`.
-- `src/level-ui.css` owns the new responsive layout so the existing board renderer and board projection remain independent from viewport positioning.
-- The notebook exposes **Banda**, **Misión**, **Reglas** and **Ajustes** tabs. The selected post-it rises vertically and every section can contain multiple pages with previous/next navigation.
-- `src/level-ui.js` currently provides placeholder notebook content and the pagination controller. The data model is intentionally simple so level-specific content can replace the placeholders later.
-- The old corner settings entry point is hidden in the level UI. The old settings dialog remains available from the home screen for compatibility.
-- The old visible volume menu is hidden but retained as the compatibility bridge to the existing `AudioManager`. A new mute button toggles between zero and the last non-zero volume. Fine volume control is exposed from the notebook's Ajustes page.
-- A pause button and informational pause dialog are present. This iteration blocks board pointer interaction while the dialog is open; engine-level pausing of AI timers/state is still pending and must be implemented before pause is considered gameplay-complete.
-- During deployment, the notebook temporarily shows the player's available band and placement status. Once deployment ends, the normal **Banda**, **Misión**, **Reglas** and **Ajustes** content returns.
-- The menu-to-level shared-notebook FLIP transition is intentionally not part of this branch yet.
+Merged to `main` through PR #10.
 
-## Existing start screen
+- Units have explicit `facing` state: `north` or `south`.
+- `team`, origin `faction` and `facing` are independent.
+- The tutorial starts player pieces facing north and enemy pieces facing south.
+- `GameState.setFacing()` and `GameState.turnAround()` are the authoritative operations for orientation changes.
+- `AssetRegistry.pieceAsset()` resolves optional artwork by origin faction, piece type and facing, with CSS chess-token fallback when art is not configured.
+- The session schema is version `3`, so unit facing persists with the serialized unit state.
 
-The illustrated start screen is implemented on `main` with **New Game**, **Continue** and **Settings** artwork while preserving the existing action IDs. The title entrance and menu hover/press animations live in `src/home-screen.css` and the timestamped files under `assets/menu/` are referenced by their exact filenames.
+See `docs/FACTIONS_AND_BANDS.md`.
+
+### Mechanics labs
+
+The reusable mechanics-lab framework is on `main`.
+
+- Labs are registered in `src/content/levels/labs/index.js`.
+- Registered labs automatically become directly addressable by level id and appear in **Ajustes → Laboratorios de mecánicas**.
+- Shared test-only lifecycle behavior uses generic level hooks rather than hard-coded lab ids in core systems.
+- The current `facing-lab` validates orientation state changes and front/back artwork selection with temporary SVG assets.
+
+See `docs/MECHANICS_LABS.md` and `docs/FACING_LAB.md`.
+
+### Tutorial obstacles
+
+Merged to `main` through PR #11 and reconciled with the facing work.
+
+- The tutorial declares three blocking obstacles through `boardElements`.
+- Blocking squares cannot be occupied or captured onto; sliding movement stops at them and knights may jump over them without landing on them.
+- Human and AI behavior is identical because both consume the same legal-action generator.
+- Frozen-piece pass-through remains a separate rule: frozen pieces can be crossed, while blocking board elements remain solid.
+- Current obstacle art is a visible placeholder and can be replaced without changing movement rules.
+
+See `assets/board-elements/README.md`.
 
 ## Session and turn lifecycle
 
-A session snapshot is saved in browser local storage during deployment, after the game starts and after each completed move. Finished matches clear the in-progress session. Campaign progression continues to use `ProgressionStore`.
+A session snapshot is saved during deployment, after play starts and after each completed move. It stores the selected player faction, serialized units (including facing), active turn, finished state and lifecycle phase. Completed matches clear the in-progress session; campaign progression remains separate in `ProgressionStore`.
 
-The no-legal-moves lifecycle is implemented: a blocked side loses its turn; if neither side has a legal move, the encounter ends with `Tablas` and offers `Reiniciar encuentro`. Human and AI use the same legal-move source.
+The no-legal-moves lifecycle is implemented: a blocked side loses its turn; if neither side has a legal move, the encounter ends with **Tablas** and offers **Reiniciar encuentro**. Human and AI use the same legal-move source.
 
-## Tutorial factions and starting bands
+## Factions and starting bands
 
-The game now defines three simply named factions: Verde (special piece: bishop), Roja (rook) and Amarilla (knight). A reusable starting-band factory supplies king, queen, pawn and the selected faction's special piece. New Game opens a faction selector before constructing the tutorial level, while the tutorial opponent is always a green starting band. Green player pieces use a light palette and green AI pieces use a dark palette.
+Playable factions are **Verde** (alfil), **Roja** (torre) and **Amarilla** (caballo). A starting band contains rey, reina, peón and the selected faction's special piece. The tutorial opponent remains Verde.
 
-The bitmap paper pieces are no longer assigned to factions. Gameplay has returned to the original CSS token graphics with chess glyphs; the asset files remain in the repository but are unused. Piece and faction display names are the plain chess/color names.
+Production factions currently fall back to the CSS chess-token presentation when final faction artwork is not configured. The artwork infrastructure is already ready for separate `north` / `south` assets per faction and piece type.
 
-The reusable contract, tutorial flow, palette behavior, session migration and extension checklist are documented in `docs/FACTIONS_AND_BANDS.md`.
+## Remaining work / next focus
+
+The main unresolved UI items are:
+
+- implement engine-level pause semantics so AI timers/state truly pause and resume;
+- replace placeholder notebook section content with level-specific content as level design matures;
+- implement the shared-notebook menu-to-level transition animation once the level composition is considered stable;
+- replace development placeholder obstacle/facing artwork with final production assets when available.
+
+The menu-to-level transition should animate the start-menu elements away while the notebook travels from its menu position to the in-level position and board elements appear. This remains intentionally deferred until the current level UI and deployment interaction are stable.
 
 ## Local development
 
-The project must be opened through an HTTP static server rather than by double-clicking `index.html` because Chromium can block the JavaScript modules under `file:///`.
+Open the project through an HTTP static server rather than directly with `file:///`, because Chromium may block JavaScript modules from local files.
 
 Before implementation on Windows:
 
@@ -84,6 +113,7 @@ Then read:
 1. `PROJECT_CONTEXT.md`
 2. this file
 3. `README.md`
-4. the relevant implementation files
+4. the relevant system contract in `docs/`
+5. the relevant implementation files
 
-After implementation, update this file to record completion/remaining issues, commit and push to GitHub before moving back to the Android/cloud environment.
+After implementation, update the affected documentation, commit and push before moving to another device/environment.
