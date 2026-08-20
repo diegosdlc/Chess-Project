@@ -32,7 +32,7 @@ const NOTEBOOK_SECTIONS = {
   settings: [
     {
       title: 'Ajustes',
-      html: '<div class="notebook-settings-row"><label for="notebook-volume">Música</label><input id="notebook-volume" type="range" min="0" max="100" step="1" value="45" aria-label="Volumen de la música"></div><p>El botón de altavoz junto al cuaderno permite silenciar o recuperar el volumen con una sola pulsación.</p><button id="notebook-main-menu" class="notebook-menu-button" type="button">Volver al menú principal</button>'
+      html: '<div class="notebook-settings-row"><label for="notebook-volume">Música</label><input id="notebook-volume" type="range" min="0" max="100" step="1" value="45" aria-label="Volumen de la música"></div><p>El botón de altavoz junto al cuaderno permite silenciar o recuperar el volumen con una sola pulsación.</p><button id="notebook-facing-lab" class="notebook-menu-button" type="button">Laboratorio de orientación</button><button id="notebook-main-menu" class="notebook-menu-button" type="button">Volver al menú principal</button>'
     }
   ]
 };
@@ -86,6 +86,14 @@ class NotebookUI {
   }
 
   bindSettingsControls() {
+    const facingLab = this.root.querySelector('#notebook-facing-lab');
+    facingLab?.addEventListener('click', () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set('level', 'facing-lab');
+      url.searchParams.delete('tutorial');
+      window.location.href = url.href;
+    });
+
     const mainMenu = this.root.querySelector('#notebook-main-menu');
     mainMenu?.addEventListener('click', () => window.dispatchEvent(new Event('game:return-home')));
 
