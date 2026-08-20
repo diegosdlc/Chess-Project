@@ -20,6 +20,11 @@ class GameApp {
     this.resultContent = document.querySelector('#result-content');
     this.settingsDialog = document.querySelector('#settings-dialog');
     this.factionDialog = document.querySelector('#faction-dialog');
+    this.notebook = document.querySelector('#notebook-ui');
+    this.deploymentPanel = document.querySelector('#deployment-panel');
+    this.deploymentPieces = document.querySelector('#deployment-pieces');
+    this.deploymentStatus = document.querySelector('#deployment-status');
+    this.deploymentStart = document.querySelector('#deployment-start');
     this.assets = new AssetRegistry(FACTIONS);
     this.audio = new AudioManager();
     this.progression = new ProgressionStore(GAME_CONFIG.progressionStorageKey, GAME_CONFIG.defaultLevelId);
@@ -59,6 +64,7 @@ class GameApp {
     document.querySelector('#game-settings').addEventListener('click', () => this.openSettings());
     document.querySelector('#close-settings').addEventListener('click', () => this.settingsDialog.close());
     document.querySelector('#close-faction-selection').addEventListener('click', () => this.factionDialog.close());
+    this.deploymentStart?.addEventListener('click', () => this.startDeployedGame());
     document.querySelectorAll('[data-player-faction]').forEach(button => {
       button.addEventListener('click', () => this.startNewGame(button.dataset.playerFaction));
     });
@@ -112,13 +118,13 @@ class GameApp {
       level,
       state: this.state,
       assets: this.assets,
-      onCellClick: (option, unit) => this.cellClick(option, unit),
+      onCellClick: (option, unit, x, y) => this.cellClick(option, unit, x, y),
       onCaptureAction: action => this.resolveCapture(action)
     });
     this.audio.configure(level.music);
     this.tutorial.configure(level.id, level.tutorial, { forceEnabled: forceTutorial });
     if (this.resultDialog.open) this.resultDialog.close();
-    this.resolveTurn();
+    this.resolvePhase();
     this.saveSession();
   }
 
@@ -127,6 +133,7 @@ class GameApp {
     this.state.units = savedState.units;
     this.state.currentTurn = savedState.currentTurn === 'enemy' ? 'enemy' : 'player';
     this.state.finished = Boolean(savedState.finished);
+    this.state.phase = savedState.phase === 'deployment' ? 'deployment' : 'play';
     this.state.selectedId = null;
     this.state.pendingCapture = null;
   }
@@ -140,16 +147,101 @@ class GameApp {
     this.state.reset();
     this.saveSession();
     if (this.resultDialog.open) this.resultDialog.close();
+    this.resolvePhase();
+  }
+
+  resolvePhase() {
+    if (this.state.isDeploying()) {
+      this.render();
+      return;
+    }
     this.resolveTurn();
   }
 
   render() {
     this.renderer.render();
-    this.tutorial.render(this.board, anchor => this.renderer.resolveTutorialAnchor(anchor));
+    this.renderDeployment();
+    if (!this.state.isDeploying()) {
+      this.tutorial.render(this.board, anchor => this.renderer.resolveTutorialAnchor(anchor));
+    }
   }
 
-  cellClick(option, unit) {
-    if (this.state.finished || this.state.pendingCapture || this.ai?.isTurn(this.state)) return;
+  renderDeployment() {
+    const deploying = Boolean(this.state?.isDeploying());
+    if (this.deploymentPanel) this.deploymentPanel.hidden = !deploying;
+    this.notebook?.classList.toggle('is-deploying', deploying);
+    if (!deploying || !this.deploymentPieces) return;
+
+    const units = this.state.deploymentUnits();
+    const unplacedUnits = units.filter(unit => unit.x == null || unit.y == null);
+    this.deploymentPieces.replaceChildren();
+
+    for (const unit of unplacedUnits) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `deployment-piece ${unit.id === this.state.selectedId ? 'selected' : ''}`;
+      button.setAttribute('aria-label', `Colocar ${unit.name}`);
+      this.applyDeploymentPalette(button, unit);
+
+      const fallback = document.createElement('span');
+      fallback.className = 'deployment-piece-fallback';
+      fallback.textContent = unit.fallbackGlyph;
+      button.append(fallback);
+
+      const asset = this.assets.pieceAsset(unit);
+      if (asset) {
+        const image = document.createElement('img');
+        image.className = 'deployment-piece-image';
+        image.src = this.assets.resolve(asset);
+        image.alt = '';
+        image.draggable = false;
+        image.addEventListener('error', () => image.remove(), { once: true });
+        button.append(image);
+        button.classList.add('has-image');
+      }
+
+      const name = document.createElement('span');
+      name.className = 'deployment-piece-name';
+      name.textContent = unit.name;
+      button.append(name);
+
+      button.addEventListener('click', () => {
+        this.state.setSelected(unit.id);
+        this.render();
+      });
+      this.deploymentPieces.append(button);
+    }
+
+    const selected = this.state.selected();
+    const placed = units.length - unplacedUnits.length;
+    const complete = this.state.deploymentComplete();
+    if (this.deploymentStatus) {
+      if (complete) {
+        this.deploymentStatus.textContent = 'Banda desplegada. Ya puedes iniciar la partida.';
+      } else if (selected) {
+        this.deploymentStatus.textContent = `Coloca ${selected.name} en una casilla resaltada. ${placed}/${units.length}`;
+      } else {
+        this.deploymentStatus.textContent = `Selecciona una pieza y colócala en una de tus dos primeras filas. ${placed}/${units.length}`;
+      }
+    }
+    if (this.deploymentStart) this.deploymentStart.hidden = !complete;
+  }
+
+  applyDeploymentPalette(element, unit) {
+    const palette = this.assets.piecePalette(unit);
+    if (!palette) return;
+    element.style.setProperty('--unit-primary', palette.primary);
+    element.style.setProperty('--unit-secondary', palette.secondary);
+    element.style.setProperty('--unit-text', palette.text);
+  }
+
+  cellClick(option, unit, x, y) {
+    if (this.state.finished || this.state.pendingCapture) return;
+    if (this.state.isDeploying()) {
+      this.deploymentCellClick(unit, x, y);
+      return;
+    }
+    if (this.ai?.isTurn(this.state)) return;
     if (option) {
       this.perform(this.state.selected(), option);
       return;
@@ -162,6 +254,27 @@ class GameApp {
       this.state.clearSelection();
     }
     this.render();
+  }
+
+  deploymentCellClick(unit, x, y) {
+    const deploymentTeam = this.state.deploymentTeam();
+    if (unit?.team === deploymentTeam) {
+      this.state.setSelected(unit.id);
+      this.render();
+      return;
+    }
+
+    const selected = this.state.selected();
+    if (!selected || !this.state.placeDeploymentUnit(selected, x, y)) return;
+    this.state.clearSelection();
+    this.saveSession();
+    this.render();
+  }
+
+  startDeployedGame() {
+    if (!this.state?.beginPlay()) return;
+    this.saveSession();
+    this.resolveTurn();
   }
 
   perform(unit, option) {
@@ -234,7 +347,7 @@ class GameApp {
 
   resolveTurn() {
     this.cancelAiTurn();
-    if (this.state.finished) return;
+    if (this.state.finished || this.state.isDeploying()) return;
 
     if (legalActionsFor(this.state, this.level).length) {
       this.render();

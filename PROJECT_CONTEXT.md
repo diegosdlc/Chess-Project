@@ -23,7 +23,7 @@ Before changing code, read this file, `CURRENT_WORK.md`, `README.md`, and the re
 
 The project started as a lightweight chess-derived browser game and is evolving into a more complete game with custom rules and content. The architecture should support:
 
-- multiple levels with declarative starting positions and level-specific configuration;
+- multiple levels with declarative starting positions, deployment zones and level-specific configuration;
 - custom artwork for different factions and pieces;
 - board artwork independent from game geometry;
 - obstacles, props and special board cells;
@@ -73,13 +73,14 @@ These decisions come from the development history and should be preserved unless
 9. The AI should be reusable across levels. Prefer generic legal-move generation + evaluation/search over hard-coding each level into the AI.
 10. AI difficulty should be tunable per level (for example through search depth, evaluation parameters or other configuration) without duplicating the AI implementation.
 11. Adding a new piece/rule should primarily extend the rules/move-generation layer. The AI should automatically benefit from those legal moves where possible.
-12. The game opens on a start screen. In-progress sessions are persisted in browser local storage as a level id plus board state and active turn; selections and incomplete capture choices are intentionally transient. Completed matches clear that session, while campaign progression remains separate.
+12. The game opens on a start screen. In-progress sessions are persisted in browser local storage as a level id plus board state, active turn and lifecycle phase; selections and incomplete capture choices are intentionally transient. Completed matches clear that session, while campaign progression remains separate.
 13. The current UI language is paper-cut collage with pencil-like linework. Prefer CSS-native texture and hand-drawn treatment for UI chrome; keep the game board and piece artwork data-driven.
 14. The official game name is **Turn Over**. Do not introduce new player-facing references to the former working names.
 15. The factions use plain color names: **Verde**, **Roja** and **Amarilla**. Their special pieces are alfil, torre and caballo respectively.
 16. A starting band contains rey, reina, peón and the faction's special piece. The tutorial opponent is always a green starting band.
 17. The player chooses a faction before starting a new tutorial game. When both sides are green, the player's green is light and the AI's green is dark.
 18. Pieces currently use the original CSS token graphics with chess glyphs. Bitmap piece artwork is optional infrastructure and is not assigned to the current factions.
+19. Levels may define a pre-match deployment phase. The deployment team starts off-board, places every unit on valid configured deployment rows, and normal turn/AI/tutorial resolution begins only after explicit confirmation. Deployment validity belongs to `GameState`, must respect blocking board elements, and must remain independent from faction identity and piece `facing`.
 
 ## Turn-blocking rule
 
@@ -106,7 +107,7 @@ Legal movement is authoritative. Rendering, interaction and AI should call the s
 
 ### Data-driven levels
 
-Prefer configuration/content files for level-specific setup, assets and difficulty. Avoid scattering level IDs through core game logic.
+Prefer configuration/content files for level-specific setup, assets, deployment zones and difficulty. Avoid scattering level IDs through core game logic.
 
 ### AI extensibility
 

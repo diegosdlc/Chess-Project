@@ -10,6 +10,19 @@ The official game name is **Turn Over**. Historical working names **Bandas del T
 
 Rework the in-level interface around the new tabletop composition: repositioned board, notebook navigation and compact game controls. The menu-to-level transition animation is deliberately deferred until the level UI is stable.
 
+## Pre-match deployment
+
+Implemented on `feature/pre-match-deployment`.
+
+- Levels can opt into a pre-match deployment phase with a declarative `deployment` block. The tutorial uses `team: 'player'` and `rows: [6, 7]`.
+- At level start, the configured team's units are held off-board and shown over the notebook until the player places them.
+- Deployment cells are validated by `GameState`: they must belong to the configured rows, be inside the board and not contain another active unit or a blocking board element.
+- Placed pieces can be selected again and repositioned before play starts.
+- **Iniciar partida** appears only after every deployment unit occupies a valid unique cell. Normal turn resolution, tutorial steps and AI scheduling do not begin before that action.
+- Session snapshots persist `phase` as well as unit coordinates, so an interrupted deployment can be resumed. Older schema-compatible snapshots without `phase` continue as normal play.
+- Resetting a level restores its deployment phase from the level definition.
+- Deployment preserves each unit's faction and `facing`; the existing piece-orientation model and level behavior hooks remain independent.
+
 ## Tutorial obstacles
 
 Implemented on `feature/tutorial-obstacles`.
@@ -33,7 +46,7 @@ Work in progress on `feature/level-ui-rework`.
 - The old corner settings entry point is hidden in the level UI. The old settings dialog remains available from the home screen for compatibility.
 - The old visible volume menu is hidden but retained as the compatibility bridge to the existing `AudioManager`. A new mute button toggles between zero and the last non-zero volume. Fine volume control is exposed from the notebook's Ajustes page.
 - A pause button and informational pause dialog are present. This iteration blocks board pointer interaction while the dialog is open; engine-level pausing of AI timers/state is still pending and must be implemented before pause is considered gameplay-complete.
-- The **Banda** section explains the three faction pieces and the fixed tutorial starting-band composition. Manual drag/select deployment is not wired to `GameState` yet.
+- During deployment, the notebook temporarily shows the player's available band and placement status. Once deployment ends, the normal **Banda**, **Misión**, **Reglas** and **Ajustes** content returns.
 - The menu-to-level shared-notebook FLIP transition is intentionally not part of this branch yet.
 
 ## Existing start screen
@@ -42,7 +55,7 @@ The illustrated start screen is implemented on `main` with **New Game**, **Conti
 
 ## Session and turn lifecycle
 
-A session snapshot is saved in browser local storage after a game starts and after each completed move. Finished matches clear the in-progress session. Campaign progression continues to use `ProgressionStore`.
+A session snapshot is saved in browser local storage during deployment, after the game starts and after each completed move. Finished matches clear the in-progress session. Campaign progression continues to use `ProgressionStore`.
 
 The no-legal-moves lifecycle is implemented: a blocked side loses its turn; if neither side has a legal move, the encounter ends with `Tablas` and offers `Reiniciar encuentro`. Human and AI use the same legal-move source.
 

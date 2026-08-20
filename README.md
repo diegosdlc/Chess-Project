@@ -12,6 +12,7 @@ A lightweight browser game with a data-driven structure for levels, factions, as
 - `src/content/bands.js` — shared piece catalogue and starting-band factory.
 - `src/content/levels/` — declarative level definitions and level registry.
 - `src/home-screen.css` — illustrated start-screen composition and animations.
+- `src/deployment.css` — pre-match deployment UI and board-zone highlighting.
 - `assets/menu/` — full-canvas start-screen background, title and button artwork.
 - `assets/boards/` — board artwork.
 - `assets/pieces/` — optional piece artwork; current factions use CSS tokens.
@@ -29,11 +30,27 @@ Levels can define:
 
 - their own board artwork and isometric projection;
 - arbitrary starting units and factions;
+- an optional `deployment` block describing which team deploys and which board rows are legal;
 - background music;
 - blocking `boardElements` with custom artwork;
 - visual `specialTiles` ready for level-specific mechanics;
 - tutorial tooltip steps anchored to a unit, cell or the board;
 - the next campaign level.
+
+## Pre-match deployment
+
+A level can opt into deployment with:
+
+```js
+deployment: {
+  team: 'player',
+  rows: [6, 7]
+}
+```
+
+When deployment is enabled, that team's pieces start off-board and are shown over the notebook. The player selects each piece and places it on a valid configured row. Blocking `boardElements` and occupied cells cannot be used. Once every unit is placed on a unique legal cell, **Iniciar partida** becomes available; turn resolution, AI scheduling and tutorial steps begin only after confirmation.
+
+The tutorial uses the player's two nearest rows (`6` and `7`). Deployment state and placed coordinates are included in the local session snapshot, so **Continuar partida** can resume an interrupted setup.
 
 ## Factions and pieces
 
@@ -59,4 +76,4 @@ The app opens on an illustrated 1536×960 start-screen composition built from fu
 
 The filenames currently stored under `assets/menu/` include upload timestamp suffixes; `index.html` references those exact paths. If the files are renamed later, update the HTML paths in the same commit. See `assets/menu/README.md` for the current asset contract.
 
-An in-progress game is saved locally after setup and after each completed move, so **Continuar partida** can restore the active level, selected faction, pieces and turn after closing the browser. Sessions are local to the current browser/device and are cleared when the encounter ends. The settings screen is currently a UI placeholder for future music, difficulty and controls settings.
+An in-progress game is saved locally during deployment, after setup and after each completed move, so **Continuar partida** can restore the active level, selected faction, pieces, lifecycle phase and turn after closing the browser. Sessions are local to the current browser/device and are cleared when the encounter ends. The settings screen is currently a UI placeholder for future music, difficulty and controls settings.

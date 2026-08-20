@@ -24,7 +24,8 @@ export class BoardRenderer {
 
   render() {
     this.board.innerHTML = '';
-    const selectedOptions = this.state.pendingCapture ? [] : optionsFor(this.state, this.level, this.state.selected());
+    const deploying = this.state.isDeploying?.() ?? false;
+    const selectedOptions = deploying || this.state.pendingCapture ? [] : optionsFor(this.state, this.level, this.state.selected());
     const size = this.level.board.size ?? 8;
 
     this.renderSpecialTiles();
@@ -41,6 +42,7 @@ export class BoardRenderer {
 
     this.renderBoardElements();
     this.board.dataset.turn = this.state.currentTurn;
+    this.board.dataset.phase = this.state.phase ?? 'play';
   }
 
   renderCell(x, y, option, unit) {
@@ -51,6 +53,12 @@ export class BoardRenderer {
     cell.setAttribute('aria-label', `Casilla ${x + 1},${y + 1}`);
     place(cell, box, this.projection);
 
+    if (this.state.isDeploying?.() && this.state.isDeploymentCell(x, y)) {
+      cell.classList.add('deployment-zone');
+      const selected = this.state.selected();
+      if (selected && this.state.canDeployAt(selected, x, y)) cell.classList.add('deployment-target');
+    }
+
     if (option) {
       cell.classList.add(option.kind === 'move-frozen' ? 'rescue-target' : `${option.kind}-target`);
     }
@@ -58,11 +66,11 @@ export class BoardRenderer {
       cell.classList.add('pending-capture-target');
     }
 
-    cell.addEventListener('click', () => this.onCellClick(option, unit));
+    cell.addEventListener('click', () => this.onCellClick(option, unit, x, y));
     this.board.append(cell);
 
     this.renderPrisoners(x, y, box);
-    if (unit) this.renderUnit(unit, box, option);
+    if (unit) this.renderUnit(unit, box, option, x, y);
   }
 
   renderPrisoners(x, y, box) {
@@ -82,7 +90,7 @@ export class BoardRenderer {
     });
   }
 
-  renderUnit(unit, box, option) {
+  renderUnit(unit, box, option, x, y) {
     const piece = document.createElement('button');
     piece.type = 'button';
     piece.className = `unit ${unit.id === this.state.selectedId ? 'selected' : ''} ${this.state.pendingCapture?.targetId === unit.id ? 'awaiting-capture' : ''}`;
@@ -111,7 +119,7 @@ export class BoardRenderer {
 
     piece.addEventListener('click', event => {
       event.stopPropagation();
-      this.onCellClick(option, unit);
+      this.onCellClick(option, unit, x, y);
     });
     this.board.append(piece);
     this.renderCaptureChoice(unit, pieceBox);
@@ -211,7 +219,7 @@ export class BoardRenderer {
       box = cellBox(this.projection, anchor.x, anchor.y);
     } else if (anchor.type === 'unit') {
       const unit = this.state.units.find(item => item.id === anchor.id && this.state.active(item));
-      if (!unit) return null;
+      if (!unit || unit.x == null || unit.y == null) return null;
       box = this.unitBox(cellBox(this.projection, unit.x, unit.y));
     } else if (anchor.type === 'board') {
       box = { left: this.projection.width * 0.4, top: this.projection.height * 0.35, width: this.projection.width * 0.2, height: this.projection.height * 0.2 };
