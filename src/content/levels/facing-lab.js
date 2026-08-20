@@ -1,36 +1,20 @@
 import { PIECES } from '../bands.js';
-
-const BOARD = Object.freeze({
-  size: 8,
-  artwork: './assets/boards/Tablero (20260812071431).webp',
-  projection: {
-    width: 940,
-    height: 580,
-    origin: { x: 466, y: 44 },
-    xAxis: { x: 53.75, y: 31.5 },
-    yAxis: { x: -53.625, y: 31.375 }
-  },
-  artworkFrame: {
-    width: '163.404255%',
-    height: '171.724138%',
-    left: '-26.595745%',
-    top: '-51.724138%'
-  }
-});
+import { createLabBehavior } from './labs/behavior.js';
+import { STANDARD_BOARD } from './shared.js';
 
 const TEST_ART = Object.freeze({
-  bishop: {
+  bishop: Object.freeze({
     north: './assets/pieces/facing-lab/bishop-north.svg',
     south: './assets/pieces/facing-lab/bishop-south.svg'
-  },
-  rook: {
+  }),
+  rook: Object.freeze({
     north: './assets/pieces/facing-lab/rook-north.svg',
     south: './assets/pieces/facing-lab/rook-south.svg'
-  },
-  knight: {
+  }),
+  knight: Object.freeze({
     north: './assets/pieces/facing-lab/knight-north.svg',
     south: './assets/pieces/facing-lab/knight-south.svg'
-  }
+  })
 });
 
 function unit({ id, faction, pieceType, facing, x, y }) {
@@ -71,21 +55,26 @@ export function createFacingLab() {
     id: 'facing-lab',
     name: 'Laboratorio de orientación',
     nextLevelId: null,
-    board: BOARD,
-    teams: {
+    board: STANDARD_BOARD,
+    teams: Object.freeze({
       player: 'green',
       enemy: 'green'
-    },
+    }),
     music: null,
     ai: null,
-    rules: {
+    rules: Object.freeze({
       victory: 'elimination',
       captureChoice: true
-    },
-    testing: {
+    }),
+    lab: Object.freeze({
+      enabled: true,
+      category: 'pieces',
+      description: 'Prueba frontal/espalda y cambios de encaramiento.'
+    }),
+    behavior: createLabBehavior({
       flipFacingOnMove: true,
       keepPlayerTurn: true
-    },
+    }),
     units: [
       unit({ id: 'lab-green-bishop-north', faction: 'green', pieceType: 'bishop', facing: 'north', x: 1, y: 6 }),
       unit({ id: 'lab-green-bishop-south', faction: 'green', pieceType: 'bishop', facing: 'south', x: 1, y: 4 }),
@@ -97,10 +86,10 @@ export function createFacingLab() {
     ],
     boardElements: [],
     specialTiles: [],
-    tutorial: {
+    tutorial: Object.freeze({
       enabledByDefault: false,
       steps: []
-    }
+    })
   });
 }
 
