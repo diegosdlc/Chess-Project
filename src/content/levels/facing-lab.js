@@ -83,7 +83,8 @@ export function createFacingLab() {
       captureChoice: true
     },
     testing: {
-      flipFacingOnMove: true
+      flipFacingOnMove: true,
+      keepPlayerTurn: true
     },
     units: [
       unit({ id: 'lab-green-bishop-north', faction: 'green', pieceType: 'bishop', facing: 'north', x: 1, y: 6 }),
