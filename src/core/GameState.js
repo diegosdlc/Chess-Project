@@ -80,12 +80,14 @@ export class GameState {
   leaveOrigin(unit) {
     const originX = unit.x;
     const originY = unit.y;
+    this.level.behavior?.beforeLeaveOrigin?.({ state: this, unit, x: originX, y: originY });
     unit.x = null;
     unit.y = null;
     this.releaseFriendlyPrisonerFrom(originX, originY, unit.team);
   }
 
   changeTurn() {
+    if (this.level.behavior?.beforeChangeTurn?.({ state: this }) === false) return;
     this.currentTurn = NEXT_TEAM[this.currentTurn];
   }
 }
