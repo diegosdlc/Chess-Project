@@ -2,12 +2,19 @@
 
 This folder is for obstacles, props and special-tile artwork that belongs to a level.
 
+## Blocking obstacles
+
+Blocking obstacles are declared in a level's `boardElements` array. They are part of the authoritative movement rules: pieces cannot occupy or capture their square, sliding pieces stop when they reach them, and knights may jump over them but cannot land on them. Frozen pieces keep their separate pass-through behavior; blocking board elements remain solid.
+
+Use `type: 'blocker'` for the generic obstacle contract. `blocking: true` is the rules flag consumed by the movement engine. The optional `asset` can later replace a placeholder without changing the level rules.
+
 Example blocking obstacle:
 
 ```js
 boardElements: [
   {
     id: 'rock-01',
+    type: 'blocker',
     name: 'Boulder',
     x: 4,
     y: 3,
@@ -19,7 +26,11 @@ boardElements: [
 ]
 ```
 
-Example special tile:
+The tutorial currently uses placeholder blockers without bitmap assets so their final artwork can be swapped in later.
+
+## Special tiles
+
+Special tiles are visual/content hooks for future mechanics and can also use assets.
 
 ```js
 specialTiles: [
