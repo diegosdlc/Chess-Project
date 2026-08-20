@@ -16,6 +16,8 @@ const ENEMY_POSITIONS = Object.freeze({
   bishop: { x: 6, y: 0 }
 });
 
+const TUTORIAL_OBSTACLE_ASSET = './assets/board-elements/tutorial/blocker-placeholder.svg';
+
 const TUTORIAL_OBSTACLES = Object.freeze([
   {
     id: 'tutorial-blocker-c4',
@@ -24,10 +26,10 @@ const TUTORIAL_OBSTACLES = Object.freeze([
     x: 2,
     y: 3,
     blocking: true,
-    fallbackGlyph: '✎',
+    asset: TUTORIAL_OBSTACLE_ASSET,
     className: 'tutorial-blocker',
-    scale: 0.88,
-    yOffset: -0.08
+    scale: 1.28,
+    yOffset: -0.32
   },
   {
     id: 'tutorial-blocker-d4',
@@ -36,10 +38,10 @@ const TUTORIAL_OBSTACLES = Object.freeze([
     x: 3,
     y: 3,
     blocking: true,
-    fallbackGlyph: '✎',
+    asset: TUTORIAL_OBSTACLE_ASSET,
     className: 'tutorial-blocker',
-    scale: 0.88,
-    yOffset: -0.08
+    scale: 1.28,
+    yOffset: -0.32
   },
   {
     id: 'tutorial-blocker-f6',
@@ -48,10 +50,10 @@ const TUTORIAL_OBSTACLES = Object.freeze([
     x: 5,
     y: 5,
     blocking: true,
-    fallbackGlyph: '✎',
+    asset: TUTORIAL_OBSTACLE_ASSET,
     className: 'tutorial-blocker',
-    scale: 0.88,
-    yOffset: -0.08
+    scale: 1.28,
+    yOffset: -0.32
   }
 ]);
 
