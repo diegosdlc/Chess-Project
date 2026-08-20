@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Placeholder obstacle">
+  <defs>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="7" flood-color="#2f291f" flood-opacity="0.38"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)" stroke="#34342f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M43 172 L60 80 L188 67 L214 163 L151 201 L79 196 Z" fill="#d9c58d"/>
+    <path d="M61 82 L109 106 L188 68 L139 48 Z" fill="#efe0ad"/>
+    <path d="M109 106 L106 184 L151 201 L154 118 Z" fill="#c9ae70"/>
+    <path d="M154 118 L188 68 L214 163 L151 201 Z" fill="#b89155"/>
+    <path d="M76 111 L93 118 M72 132 L94 140 M169 101 L190 96 M166 126 L195 118 M70 161 L92 168" fill="none" stroke-width="5" opacity="0.75"/>
+    <path d="M79 67 L191 181" fill="none" stroke="#9f463f" stroke-width="16"/>
+    <path d="M183 62 L73 188" fill="none" stroke="#9f463f" stroke-width="16"/>
+    <path d="M79 67 L191 181 M183 62 L73 188" fill="none" stroke="#6e2f2c" stroke-width="4" stroke-dasharray="10 9" opacity="0.9"/>
+  </g>
+</svg>
