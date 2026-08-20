@@ -87,6 +87,7 @@ export class GameState {
   }
 
   changeTurn() {
+    if (this.level.testing?.keepPlayerTurn) return;
     this.currentTurn = NEXT_TEAM[this.currentTurn];
   }
 }
