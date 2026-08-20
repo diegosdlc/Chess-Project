@@ -1,6 +1,6 @@
 # Turn Over — Current Work
 
-Last updated: 2026-08-19
+Last updated: 2026-08-20
 
 ## Project naming
 
@@ -9,6 +9,17 @@ The official game name is **Turn Over**. Historical working names **Bandas del T
 ## Active task
 
 Rework the in-level interface around the new tabletop composition: repositioned board, notebook navigation and compact game controls. The menu-to-level transition animation is deliberately deferred until the level UI is stable.
+
+## Tutorial obstacles
+
+Implemented on `feature/tutorial-obstacles`.
+
+- The tutorial level now declares three blocking obstacles through its existing `boardElements` content hook.
+- Obstacles use the generic `type: 'blocker'` contract plus `blocking: true`, so future artwork can replace the current placeholders without changing movement rules.
+- The authoritative rules engine already prevents occupation/capture of blocking squares, stops sliding movement at them and lets knights jump over them without landing on them.
+- The AI consumes the same legal-action generator, so obstacle behavior is identical for human and AI turns.
+- Frozen-piece pass-through remains independent: frozen pieces can be crossed according to the existing rule, while board obstacles remain solid.
+- The obstacle contract is documented in `assets/board-elements/README.md`.
 
 ## Level UI rework status
 
