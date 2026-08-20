@@ -12,8 +12,9 @@ export class LevelLabBehavior {
     if (this.config.flipFacingOnMove) state.turnAround(unit);
   }
 
-  shouldChangeTurn() {
-    if (!this.enabled()) return true;
-    return this.config.keepPlayerTurn !== true;
+  changeTurn(state) {
+    if (!state) return;
+    if (this.enabled() && this.config.keepPlayerTurn === true) return;
+    state.changeTurn();
   }
 }
