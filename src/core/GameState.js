@@ -1,4 +1,5 @@
 const NEXT_TEAM = Object.freeze({ player: 'enemy', enemy: 'player' });
+const OPPOSITE_FACING = Object.freeze({ north: 'south', south: 'north' });
 
 function clone(value) {
   return typeof structuredClone === 'function'
@@ -54,6 +55,18 @@ export class GameState {
     this.selectedId = null;
   }
 
+  setFacing(unit, facing) {
+    if (!unit || !OPPOSITE_FACING[facing]) return false;
+    unit.facing = facing;
+    return true;
+  }
+
+  turnAround(unit) {
+    if (!unit || !OPPOSITE_FACING[unit.facing]) return false;
+    unit.facing = OPPOSITE_FACING[unit.facing];
+    return true;
+  }
+
   releaseFriendlyPrisonerFrom(x, y, team) {
     if (x == null || y == null) return;
     this.prisonersAt(x, y)
@@ -67,12 +80,14 @@ export class GameState {
   leaveOrigin(unit) {
     const originX = unit.x;
     const originY = unit.y;
+    this.level.behavior?.beforeLeaveOrigin?.({ state: this, unit, x: originX, y: originY });
     unit.x = null;
     unit.y = null;
     this.releaseFriendlyPrisonerFrom(originX, originY, unit.team);
   }
 
   changeTurn() {
+    if (this.level.behavior?.beforeChangeTurn?.({ state: this }) === false) return;
     this.currentTurn = NEXT_TEAM[this.currentTurn];
   }
 }
