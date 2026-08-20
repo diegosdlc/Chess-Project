@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="./src/home-screen.css?v=20260819-0055" />
     <link rel="stylesheet" href="./src/audio-controls.css?v=20260814-1700" />
     <link rel="stylesheet" href="./src/level-ui.css?v=20260819-0055" />
+    <link rel="stylesheet" href="./src/deployment.css?v=20260820-1" />
   </head>
   <body>
     <main id="game-shell" class="board-shell level-screen" aria-label="Juego de tablero" hidden>
@@ -21,6 +22,14 @@
           <div class="notebook-art" aria-hidden="true">
             <img class="notebook-base" src="./assets/notebook%20menu/notebook.webp" alt="" draggable="false" />
           </div>
+
+          <section id="deployment-panel" class="deployment-panel" aria-labelledby="deployment-title" hidden>
+            <p class="deployment-kicker">Fase de despliegue</p>
+            <h2 id="deployment-title">Prepara tu banda</h2>
+            <div id="deployment-pieces" class="deployment-pieces" aria-label="Piezas disponibles"></div>
+            <p id="deployment-status" class="deployment-status">Selecciona una pieza y colócala en una de tus dos primeras filas.</p>
+            <button id="deployment-start" class="deployment-start" type="button" hidden>Iniciar partida</button>
+          </section>
 
           <nav class="notebook-tabs" role="tablist" aria-label="Secciones del cuaderno">
             <button class="notebook-tab" type="button" role="tab" data-section="band" aria-selected="true" aria-label="Banda">
@@ -140,7 +149,7 @@
       </section>
     </dialog>
 
-    <script type="module" src="./src/main.js?v=20260819-2"></script>
+    <script type="module" src="./src/main.js?v=20260820-deployment-1"></script>
     <script type="module" src="./src/level-ui.js?v=20260819-2"></script>
   </body>
 </html>

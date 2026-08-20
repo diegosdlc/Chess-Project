@@ -25,7 +25,12 @@ export class GameSessionStore {
         schemaVersion: this.schemaVersion,
         levelId: level.id,
         playerFactionId: level.teams.player,
-        state: { units: state.units, currentTurn: state.currentTurn, finished: state.finished }
+        state: {
+          units: state.units,
+          currentTurn: state.currentTurn,
+          finished: state.finished,
+          phase: state.phase
+        }
       }));
     } catch {
       // Storage is optional.

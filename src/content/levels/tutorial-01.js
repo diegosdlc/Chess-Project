@@ -68,6 +68,10 @@ export function createTutorial01({ playerFactionId = 'green' } = {}) {
       player: playerFactionId,
       enemy: 'green'
     },
+    deployment: {
+      team: 'player',
+      rows: [6, 7]
+    },
     music: {
       track: './assets/music/magiksolo-pirate-tavern-full-version-167990.mp3',
       volume: 0.45,

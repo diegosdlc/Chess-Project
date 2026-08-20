@@ -25,6 +25,17 @@ export class GameState {
     this.currentTurn = 'player';
     this.finished = false;
     this.pendingCapture = null;
+    this.phase = this.level.deployment ? 'deployment' : 'play';
+
+    if (this.isDeploying()) {
+      const team = this.deploymentTeam();
+      this.units
+        .filter(unit => unit.team === team)
+        .forEach(unit => {
+          unit.x = null;
+          unit.y = null;
+        });
+    }
   }
 
   active(unit) {
@@ -64,6 +75,65 @@ export class GameState {
   turnAround(unit) {
     if (!unit || !OPPOSITE_FACING[unit.facing]) return false;
     unit.facing = OPPOSITE_FACING[unit.facing];
+    return true;
+  }
+
+  isDeploying() {
+    return this.phase === 'deployment';
+  }
+
+  deploymentTeam() {
+    return this.level.deployment?.team ?? 'player';
+  }
+
+  deploymentRows() {
+    return Array.isArray(this.level.deployment?.rows) ? this.level.deployment.rows : [];
+  }
+
+  deploymentUnits() {
+    const team = this.deploymentTeam();
+    return this.units.filter(unit => this.active(unit) && unit.team === team);
+  }
+
+  isDeploymentCell(x, y) {
+    const size = this.level.board.size ?? 8;
+    return Number.isInteger(x) && Number.isInteger(y) &&
+      x >= 0 && x < size && y >= 0 && y < size &&
+      this.deploymentRows().includes(y);
+  }
+
+  deploymentCellBlocked(x, y, ignoredUnitId = null) {
+    const occupied = this.activeAt(x, y);
+    if (occupied && occupied.id !== ignoredUnitId) return true;
+    return (this.level.boardElements ?? []).some(element => element.blocking && element.x === x && element.y === y);
+  }
+
+  canDeployAt(unit, x, y) {
+    if (!this.isDeploying() || !unit || unit.team !== this.deploymentTeam()) return false;
+    if (!this.isDeploymentCell(x, y)) return false;
+    return !this.deploymentCellBlocked(x, y, unit.id);
+  }
+
+  placeDeploymentUnit(unit, x, y) {
+    if (!this.canDeployAt(unit, x, y)) return false;
+    unit.x = x;
+    unit.y = y;
+    return true;
+  }
+
+  deploymentComplete() {
+    const units = this.deploymentUnits();
+    if (!units.length) return false;
+    if (!units.every(unit => this.isDeploymentCell(unit.x, unit.y) && !this.deploymentCellBlocked(unit.x, unit.y, unit.id))) return false;
+    const occupiedCells = new Set(units.map(unit => `${unit.x},${unit.y}`));
+    return occupiedCells.size === units.length;
+  }
+
+  beginPlay() {
+    if (!this.isDeploying() || !this.deploymentComplete()) return false;
+    this.phase = 'play';
+    this.currentTurn = 'player';
+    this.clearSelection();
     return true;
   }
 
