@@ -16,6 +16,45 @@ const ENEMY_POSITIONS = Object.freeze({
   bishop: { x: 6, y: 0 }
 });
 
+const TUTORIAL_OBSTACLES = Object.freeze([
+  {
+    id: 'tutorial-blocker-c4',
+    type: 'blocker',
+    name: 'Obstáculo',
+    x: 2,
+    y: 3,
+    blocking: true,
+    fallbackGlyph: '✎',
+    className: 'tutorial-blocker',
+    scale: 0.88,
+    yOffset: -0.08
+  },
+  {
+    id: 'tutorial-blocker-d4',
+    type: 'blocker',
+    name: 'Obstáculo',
+    x: 3,
+    y: 3,
+    blocking: true,
+    fallbackGlyph: '✎',
+    className: 'tutorial-blocker',
+    scale: 0.88,
+    yOffset: -0.08
+  },
+  {
+    id: 'tutorial-blocker-f6',
+    type: 'blocker',
+    name: 'Obstáculo',
+    x: 5,
+    y: 5,
+    blocking: true,
+    fallbackGlyph: '✎',
+    className: 'tutorial-blocker',
+    scale: 0.88,
+    yOffset: -0.08
+  }
+]);
+
 export function createTutorial01({ playerFactionId = 'green' } = {}) {
   return Object.freeze({
   id: 'tutorial-01',
@@ -60,8 +99,7 @@ export function createTutorial01({ playerFactionId = 'green' } = {}) {
     ...createInitialBand({ team: 'player', factionId: playerFactionId, positions: PLAYER_POSITIONS }),
     ...createInitialBand({ team: 'enemy', factionId: 'green', positions: ENEMY_POSITIONS })
   ],
-  // Blocking elements participate in movement rules. Add an `asset` path to render artwork.
-  boardElements: [],
+  boardElements: TUTORIAL_OBSTACLES,
   // Special tiles are visual/content hooks for future mechanics and can also use assets.
   specialTiles: [],
   tutorial: {
