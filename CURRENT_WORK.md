@@ -66,6 +66,7 @@ See `docs/FACTIONS_AND_BANDS.md`.
 - Lab-only conveniences use generic level behavior hooks rather than hard-coded lab ids in core systems.
 - `facing-lab` validates orientation/art selection.
 - `pawn-evolution-lab` validates pawn evolution and evolved-pawn movement/capture cases.
+- `deployment-budget-lab` exposes base and evolved versions of all six piece types simultaneously with a 50-point budget, using the production deployment/affordability rules. It is available directly through `?level=deployment-budget-lab` and from the lab list in settings.
 
 See `docs/MECHANICS_LABS.md`.
 
