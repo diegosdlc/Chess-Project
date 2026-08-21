@@ -53,6 +53,24 @@ function enemyAnchor() {
   };
 }
 
+function enemyRookTestPawn() {
+  const piece = PIECES.pawn;
+  return {
+    id: `${LAB_ID}-enemy-rook-test-pawn`,
+    team: 'enemy',
+    faction: 'red',
+    facing: FACINGS.SOUTH,
+    name: 'Peón de prueba para Torre+',
+    pieceType: 'pawn',
+    fallbackGlyph: piece.fallbackGlyph,
+    moveProfile: piece.moveProfile,
+    evolutionProfile: piece.evolutionProfile,
+    evolutionStage: 'base',
+    x: 3,
+    y: 5
+  };
+}
+
 export function createDeploymentBudgetLab() {
   const playerUnits = PIECE_TYPES.flatMap(pieceType => [
     playerUnit(pieceType, 'base'),
@@ -82,11 +100,12 @@ export function createDeploymentBudgetLab() {
     lab: Object.freeze({
       enabled: true,
       category: 'deployment',
-      description: 'Compara costes y capacidades de despliegue de todas las piezas base y evolucionadas con 50 puntos.'
+      description: 'Compara costes y capacidades de despliegue de todas las piezas base y evolucionadas con 50 puntos, incluido el escudo de Torre+.'
     }),
-    behavior: createLabBehavior({ keepPlayerTurn: true }),
+    behavior: createLabBehavior(),
     units: [
       ...playerUnits,
+      enemyRookTestPawn(),
       enemyAnchor()
     ],
     boardElements: [],
