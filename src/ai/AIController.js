@@ -1,5 +1,5 @@
-import { legalActionsFor, optionsFor } from '../core/rules.js';
-import { completeUnitMove } from '../core/GameState.js';
+import { legalActionsFor, optionsFor } from '../core/rules.js?v=20260821-evolution-2';
+import { applyRookShieldRejection, applyRoyalSwap, completeUnitMove } from '../core/GameState.js?v=20260821-evolution-2';
 
 export class AIController {
   constructor(config = {}) {
@@ -81,6 +81,21 @@ function simulate(state, level, action) {
   const unit = next.units.find(piece => piece.id === action.unitId);
   if (!unit) return next;
 
+  if (action.kind === 'royal-swap') {
+    const partner = next.units.find(piece => piece.id === action.targetId);
+    if (partner) applyRoyalSwap(next, unit, partner);
+    next.currentTurn = next.currentTurn === 'player' ? 'enemy' : 'player';
+    return next;
+  }
+
+  if (action.kind === 'capture' || action.kind === 'destroy') {
+    const target = next.units.find(piece => piece.id === action.targetId);
+    if (target && applyRookShieldRejection(next, level, unit, target)) {
+      next.currentTurn = next.currentTurn === 'player' ? 'enemy' : 'player';
+      return next;
+    }
+  }
+
   const originX = unit.x;
   const originY = unit.y;
   unit.x = null;
@@ -115,9 +130,13 @@ function cloneState(state) {
   const units = typeof structuredClone === 'function'
     ? structuredClone(state.units)
     : JSON.parse(JSON.stringify(state.units));
+  const teamEvolution = typeof structuredClone === 'function'
+    ? structuredClone(state.teamEvolution)
+    : JSON.parse(JSON.stringify(state.teamEvolution));
   return {
     ...state,
     units,
+    teamEvolution,
     active(unit) { return Boolean(unit && !unit.captured && !unit.destroyed); },
     activeAt(x, y) { return this.units.find(unit => this.active(unit) && unit.x === x && unit.y === y) ?? null; },
     prisonersAt(x, y) { return this.units.filter(unit => unit.captured && !unit.destroyed && unit.x === x && unit.y === y); }

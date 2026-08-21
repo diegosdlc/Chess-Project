@@ -1,4 +1,4 @@
-import { PIECES } from '../bands.js';
+import { PIECES } from '../bands.js?v=20260821-evolution-2';
 import { createLabBehavior } from './labs/behavior.js';
 import { STANDARD_BOARD } from './shared.js';
 

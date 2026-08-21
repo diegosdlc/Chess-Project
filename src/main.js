@@ -1,15 +1,16 @@
 import { GAME_CONFIG } from './config/gameConfig.js';
 import { FACTIONS, PLAYER_FACTION_IDS } from './content/factions.js';
-import { getLevel, getNextLevel } from './content/levels/index.js';
-import { GameState } from './core/GameState.js';
+import { getLevel, getNextLevel } from './content/levels/index.js?v=20260821-evolution-2';
+import { GameState } from './core/GameState.js?v=20260821-evolution-2';
 import { AssetRegistry } from './systems/AssetRegistry.js';
 import { AudioManager } from './systems/AudioManager.js?v=20260814-1700';
-import { GameSessionStore } from './systems/GameSessionStore.js';
-import { ProgressionStore } from './systems/ProgressionStore.js';
+import { GameSessionStore } from './systems/GameSessionStore.js?v=20260821-evolution-2';
+import { ProgressionStore } from './systems/ProgressionStore.js?v=20260821-evolution-2';
 import { TutorialSystem } from './systems/TutorialSystem.js';
-import { BoardRenderer } from './render/BoardRenderer.js';
-import { AIController } from './ai/AIController.js';
-import { legalActionsFor } from './core/rules.js';
+import { BoardRenderer } from './render/BoardRenderer.js?v=20260821-evolution-2';
+import { AIController } from './ai/AIController.js?v=20260821-evolution-2';
+import { legalActionsFor } from './core/rules.js?v=20260821-evolution-2';
+import { buildNextPlayerBand } from './core/campaign.js?v=20260821-evolution-2';
 
 class GameApp {
   constructor() {
@@ -39,15 +40,23 @@ class GameApp {
     this.renderer = null;
     this.ai = null;
     this.aiTimer = null;
+    this.nextPlayerBand = null;
   }
 
   start() {
     const params = new URLSearchParams(location.search);
     const requestedLevelId = params.get(GAME_CONFIG.levelQueryParam);
+    const requestedFactionId = params.get(GAME_CONFIG.factionQueryParam);
     const forceTutorial = params.get(GAME_CONFIG.tutorialQueryParam) === '1';
     this.bindMenu();
     window.addEventListener('game:return-home', () => this.showHome());
-    if (requestedLevelId) this.startGame(getLevel(requestedLevelId) ?? getLevel(GAME_CONFIG.defaultLevelId), { forceTutorial });
+    if (requestedLevelId) {
+      const requestedOptions = {
+        playerFactionId: PLAYER_FACTION_IDS.includes(requestedFactionId) ? requestedFactionId : undefined,
+        playerBand: this.progression.getPlayerBand()
+      };
+      this.startGame(getLevel(requestedLevelId, requestedOptions) ?? getLevel(GAME_CONFIG.defaultLevelId), { forceTutorial });
+    }
     else this.showHome();
 
     document.addEventListener('keydown', event => {
@@ -97,7 +106,10 @@ class GameApp {
 
   continueGame() {
     const saved = this.session.load();
-    const level = saved && getLevel(saved.levelId, { playerFactionId: saved.playerFactionId });
+    const level = saved && getLevel(saved.levelId, {
+      playerFactionId: saved.playerFactionId,
+      playerBand: this.progression.getPlayerBand()
+    });
     if (!level) { this.session.clear(); this.showHome(); return; }
     this.startGame(level, { savedState: saved.state });
   }
@@ -109,6 +121,7 @@ class GameApp {
   loadLevel(level, { forceTutorial = false, savedState = null } = {}) {
     if (!level) throw new Error('No hay ningún nivel disponible.');
     this.cancelAiTurn();
+    this.nextPlayerBand = null;
     this.level = level;
     this.state = new GameState(level);
     if (savedState) this.restoreSavedState(savedState);
@@ -134,6 +147,7 @@ class GameApp {
     this.state.currentTurn = savedState.currentTurn === 'enemy' ? 'enemy' : 'player';
     this.state.finished = Boolean(savedState.finished);
     this.state.phase = savedState.phase === 'deployment' ? 'deployment' : 'play';
+    if (savedState.teamEvolution) this.state.teamEvolution = savedState.teamEvolution;
     this.state.selectedId = null;
     this.state.pendingCapture = null;
   }
@@ -279,6 +293,14 @@ class GameApp {
 
   perform(unit, option) {
     if (!unit || this.state.finished || this.state.pendingCapture) return;
+    if (option.kind === 'royal-swap') {
+      const partner = this.state.units.find(piece => piece.id === option.targetId);
+      if (partner && this.state.swapRoyalPair(unit, partner)) {
+        this.tutorial.notify('move-completed');
+        this.finishMove();
+      }
+      return;
+    }
     if (option.kind === 'capture') {
       this.chooseCaptureAction(unit, option);
       return;
@@ -310,6 +332,12 @@ class GameApp {
 
     if (!unit || !target || !this.state.active(unit) || !this.state.active(target)) {
       this.render();
+      return;
+    }
+
+    if (this.state.rejectAttack(unit, target)) {
+      this.tutorial.notify('capture-rejected');
+      this.finishMove();
       return;
     }
 
@@ -418,6 +446,12 @@ class GameApp {
     const unit = this.state.units.find(piece => piece.id === action.unitId);
     if (!unit || !this.state.active(unit)) return;
 
+    if (action.kind === 'royal-swap') {
+      const partner = this.state.units.find(piece => piece.id === action.targetId);
+      if (partner && this.state.swapRoyalPair(unit, partner)) this.finishMove();
+      return;
+    }
+
     if (action.kind === 'move') {
       this.moveUnit(unit, action);
       return;
@@ -425,6 +459,10 @@ class GameApp {
 
     const target = this.state.units.find(piece => piece.id === action.targetId);
     if (!target || !this.state.active(target)) return;
+    if (this.state.rejectAttack(unit, target)) {
+      this.finishMove();
+      return;
+    }
     this.state.leaveOrigin(unit);
 
     if (action.kind === 'capture') {
@@ -461,11 +499,13 @@ class GameApp {
     const enemyRecruits = this.state.unresolvedPrisoners().filter(unit => unit.capturedBy === 'enemy');
     playerRecruits.forEach(unit => { unit.recruitedBy = 'player'; });
     enemyRecruits.forEach(unit => { unit.recruitedBy = 'enemy'; });
+    this.nextPlayerBand = winner === 'player' ? buildNextPlayerBand(this.state.units, this.level.id) : null;
 
     if (winner === 'player') {
       this.progression.completeLevel(this.level.id, {
         nextLevelId: this.level.nextLevelId,
-        recruitedUnitIds: playerRecruits.map(unit => unit.id)
+        recruitedUnitIds: playerRecruits.map(unit => unit.id),
+        playerBand: this.nextPlayerBand
       });
     }
 
@@ -530,7 +570,7 @@ class GameApp {
     replay.addEventListener('click', () => this.resetLevel());
     actions.append(replay);
 
-    const nextLevel = winner === 'player' ? getNextLevel(this.level) : null;
+    const nextLevel = winner === 'player' ? getNextLevel(this.level, { playerBand: this.nextPlayerBand }) : null;
     if (nextLevel) {
       const next = document.createElement('button');
       next.type = 'button';

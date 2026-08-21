@@ -29,7 +29,8 @@ export class GameSessionStore {
           units: state.units,
           currentTurn: state.currentTurn,
           finished: state.finished,
-          phase: state.phase
+          phase: state.phase,
+          teamEvolution: state.teamEvolution
         }
       }));
     } catch {

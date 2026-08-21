@@ -1,8 +1,10 @@
-import { getMechanicLabFactory, listMechanicLabs } from './labs/index.js';
-import { createTutorial01, tutorial01 } from './tutorial-01.js';
+import { getMechanicLabFactory, listMechanicLabs } from './labs/index.js?v=20260821-evolution-2';
+import { createTutorial01, tutorial01 } from './tutorial-01.js?v=20260821-evolution-2';
+import { createTutorial02, tutorial02 } from './tutorial-02.js?v=20260821-evolution-2';
 
 const LEVEL_FACTORIES = new Map([
-  [tutorial01.id, createTutorial01]
+  [tutorial01.id, createTutorial01],
+  [tutorial02.id, createTutorial02]
 ]);
 
 export function getLevel(levelId, options = {}) {
@@ -19,6 +21,9 @@ export function listLevels() {
 
 export { listMechanicLabs };
 
-export function getNextLevel(level) {
-  return level?.nextLevelId ? getLevel(level.nextLevelId, { playerFactionId: level.teams.player }) : null;
+export function getNextLevel(level, options = {}) {
+  return level?.nextLevelId ? getLevel(level.nextLevelId, {
+    playerFactionId: level.teams.player,
+    ...options
+  }) : null;
 }

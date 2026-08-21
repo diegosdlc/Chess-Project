@@ -49,26 +49,19 @@ test('a base pawn still moves and captures only toward the opposite edge', () =>
   assert.deepEqual(options, new Set(['move:3,2', 'capture:2,2']));
 });
 
-test('a player pawn evolves when a move or capture reaches the opposite edge', () => {
+test('reaching the opposite edge no longer activates evolution during a match', () => {
   const state = new GameState(level([pawn({ x: 3, y: 1 })]));
   const subject = state.units[0];
 
   state.leaveOrigin(subject);
-  const evolvedNow = state.completeMove(subject, { kind: 'move', x: 3, y: 0 });
+  state.completeMove(subject, { kind: 'move', x: 3, y: 0 });
 
-  assert.equal(evolvedNow, true);
-  assert.equal(isEvolved(subject), true);
-  assert.equal(moveProfileFor(subject), 'evolved-pawn');
-  assert.ok(optionKeys(optionsFor(state, state.level, subject)).has('move:3,1'));
-
-  const captureState = new GameState(level([pawn({ x: 4, y: 1 })]));
-  const capturingPawn = captureState.units[0];
-  captureState.leaveOrigin(capturingPawn);
-  captureState.completeMove(capturingPawn, { kind: 'capture', targetId: 'target', x: 5, y: 0 });
-  assert.equal(isEvolved(capturingPawn), true);
+  assert.equal(isEvolved(subject), false);
+  assert.equal(moveProfileFor(subject), 'pawn');
+  assert.equal(optionsFor(state, state.level, subject).length, 0);
 });
 
-test('an enemy pawn evolves at the player edge', () => {
+test('enemy pawns also wait until the next encounter to evolve', () => {
   const state = new GameState(level([pawn({ team: 'enemy', x: 4, y: 6 })]));
   state.currentTurn = 'enemy';
   const subject = state.units[0];
@@ -76,8 +69,8 @@ test('an enemy pawn evolves at the player edge', () => {
   state.leaveOrigin(subject);
   state.completeMove(subject, { kind: 'move', x: 4, y: 7 });
 
-  assert.equal(isEvolved(subject), true);
-  assert.ok(optionKeys(optionsFor(state, state.level, subject)).has('move:4,6'));
+  assert.equal(isEvolved(subject), false);
+  assert.equal(optionsFor(state, state.level, subject).length, 0);
 });
 
 test('an evolved pawn moves both ways and captures on all four diagonals', () => {
@@ -119,6 +112,6 @@ test('the pawn evolution lab is registered with ready-to-test scenarios', () => 
   const lab = getLevel('pawn-evolution-lab');
   assert.ok(lab);
   assert.equal(lab.behavior.beforeChangeTurn(), false);
-  assert.equal(lab.units.filter(unit => unit.evolutionStage === 'evolved').length, 4);
-  assert.ok(lab.units.some(unit => unit.id === 'pawn-ready-to-evolve' && unit.y === 1));
+  assert.equal(lab.units.filter(unit => unit.evolutionStage === 'evolved').length, 5);
+  assert.ok(lab.units.some(unit => unit.id === 'pawn-evolved-edge' && unit.y === 0));
 });

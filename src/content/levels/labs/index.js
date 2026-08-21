@@ -1,5 +1,5 @@
-import { createFacingLab, facingLab } from '../facing-lab.js';
-import { createPawnEvolutionLab, pawnEvolutionLab } from '../pawn-evolution-lab.js';
+import { createFacingLab, facingLab } from '../facing-lab.js?v=20260821-evolution-2';
+import { createPawnEvolutionLab, pawnEvolutionLab } from '../pawn-evolution-lab.js?v=20260821-evolution-2';
 
 export const MECHANIC_LABS = Object.freeze([
   Object.freeze({
@@ -11,7 +11,7 @@ export const MECHANIC_LABS = Object.freeze([
   Object.freeze({
     id: pawnEvolutionLab.id,
     name: 'Evolución del peón',
-    description: 'Evoluciona un peón y prueba movimiento bidireccional y captura en cuatro diagonales.',
+    description: 'Prueba movimiento bidireccional y captura en cuatro diagonales del Peón+.',
     createLevel: createPawnEvolutionLab
   })
 ]);

@@ -99,31 +99,32 @@ Registered labs:
 - may use generic level behavior hooks for test-only conveniences, but core systems must not hard-code individual lab ids.
 
 The current `facing-lab` validates north/south state changes and facing-specific artwork selection.
-The `pawn-evolution-lab` provides a pawn at the activation edge plus prepared movement and four-diagonal capture cases.
+The `pawn-evolution-lab` provides evolved pawns with prepared movement and four-diagonal capture cases.
 
 See [`docs/MECHANICS_LABS.md`](docs/MECHANICS_LABS.md), [`docs/FACING_LAB.md`](docs/FACING_LAB.md) and [`docs/EVOLUTION.md`](docs/EVOLUTION.md).
 
 ## Piece evolution
 
-Evolution is a generic state/profile system: each piece type can define its own activation condition and evolved capabilities. The pawn is the first implemented evolution. Reaching the opposite edge permanently changes it to a bidirectional one-cell mover that can capture on all four adjacent diagonals.
+Evolution is a generic state/profile system. For the current prototype, pieces that survive a victorious encounter evolve in the carried player band for the next level; Rey+ and Reina+ require both members to survive. Peón+, Caballo+, Alfil+, Torre+ and the royal pair all have implemented capabilities.
 
-Evolution is shared by player interaction, legal-action generation and AI simulation. Its state is saved with the unit, and evolved units currently receive a small star marker. See [`docs/EVOLUTION.md`](docs/EVOLUTION.md).
+Level 1 now unlocks level 2. The second encounter reuses the first level's board/configuration while preserving surviving pieces, recruits, origin factions and evolution state. Evolution is shared by player interaction, legal-action generation and AI simulation; evolved units currently receive a small star marker. See [`docs/EVOLUTION.md`](docs/EVOLUTION.md).
 
 ## Tutorial preview
 
 The first level includes tutorial tooltip steps but keeps them off by default so the clean level UI remains unchanged. Open the game with `?level=tutorial-01&tutorial=1` to force the tutorial on.
 
 A normal level or mechanics lab can also be opened directly with `?level=<level-id>`.
+For evolution testing without campaign progress, `?level=tutorial-02&faction=<green|red|yellow>` creates the corresponding evolved default band.
 
 ## Progression
 
-Player victories are persisted in local storage. `ProgressionStore` tracks completed levels, unlocked levels and recruited units, keeping campaign state separate from the active board/session state.
+Player victories are persisted in local storage. `ProgressionStore` tracks completed/unlocked levels, recruited units and the complete carried player band used to construct the next encounter, keeping campaign state separate from the active board/session state.
 
 ## Start screen, notebook and local session
 
 The app opens on an illustrated 1536×960 start-screen composition built from WebP layers in `assets/menu/`. The title has a paper-placement entrance animation and the artwork buttons use subtle hover/focus/press feedback.
 
-The in-level UI uses a notebook with **Banda**, **Misión**, **Reglas** and **Ajustes** sections. During deployment, the notebook content area temporarily becomes the deployment panel; after **Iniciar partida**, normal notebook navigation returns.
+The in-level UI uses a notebook with **Banda**, **Misión**, **Reglas** and **Ajustes** sections. During deployment, **Banda** contains the placement panel while every notebook section remains visible and interactive. Long sections scroll vertically inside the paper area.
 
 An in-progress game is saved locally during deployment, after setup and after each completed move. **Continuar partida** restores the active level, selected faction, serialized units (including facing and evolution state), lifecycle phase and turn. Sessions are local to the current browser/device and are cleared when the encounter ends.
 

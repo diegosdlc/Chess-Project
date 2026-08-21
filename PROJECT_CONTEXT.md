@@ -92,7 +92,8 @@ These decisions come from the development history and should be preserved unless
 18. `team`, origin `faction` and `facing` are independent unit state. Current production factions can fall back to CSS chess tokens, while the artwork contract supports `faction -> pieceType -> facing` (`north` / `south`). Changing control must not silently change faction identity; changing facing must be explicit.
 19. Levels may define a pre-match deployment phase. The deployment team starts off-board, places every unit on valid configured deployment rows, and normal turn/AI/tutorial resolution begins only after explicit confirmation. Deployment validity belongs to `GameState`, respects blocking board elements and remains independent from faction identity and facing.
 20. Mechanics labs are development levels registered through a reusable registry. They must exercise the same engine operations as production gameplay and keep test-only behavior in level configuration/hooks rather than hard-coded level-id branches in core systems.
-21. Evolution is a generic per-piece profile system. Each evolution may have different activation conditions and capabilities; evolution stage is authoritative unit state shared by the player, AI and session persistence. The pawn is only the first implemented profile.
+21. Evolution is a generic per-piece profile system. For the current prototype, surviving members of the victorious player band evolve between encounters; Rey and Reina require joint survival. Evolution stage and per-encounter uses are authoritative state shared by player rules, AI and persistence.
+22. Campaign level transitions preserve the complete player roster: active survivors and recruited prisoners continue, while destroyed units and player prisoners do not. Level factories receive this carried band rather than rebuilding a standard band.
 
 ## Turn-blocking rule
 

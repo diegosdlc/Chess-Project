@@ -46,7 +46,7 @@ Normal turn resolution is suspended while `phase === 'deployment'`.
 A deployment cell is legal only when:
 
 1. `x` and `y` are inside the current board size;
-2. `y` belongs to the configured deployment rows;
+2. `y` belongs to the configured deployment rows or to rows granted by that unit's evolution capabilities;
 3. no other active unit occupies the cell;
 4. no blocking `boardElement` occupies the cell.
 
@@ -104,6 +104,10 @@ Do not reset deployment by manually reconstructing the tutorial formation in con
 ### Facing
 
 Deployment changes coordinates only. It must not rotate a unit or alter its origin faction. Initial facing still comes from the level/band definition.
+
+### Caballo+
+
+An evolved knight extends its own legal deployment depth to four rows from its controlling edge. This is unit-specific: selecting Caballo+ highlights the additional rows, while base pieces continue using the rows declared by the level.
 
 ### Obstacles
 

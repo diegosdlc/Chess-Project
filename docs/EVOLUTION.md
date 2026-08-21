@@ -1,49 +1,77 @@
-# Piece evolution
+# Piece evolution and carried bands
 
-Evolution is a shared unit-state system. It is not pawn promotion and it is not exclusive to one piece type. Each piece evolution may define its own activation condition and its own capabilities.
+Evolution is shared campaign state, not standard chess promotion. For the current prototype, a piece evolves when it survives a victorious encounter and continues into the next player band. Destroyed pieces and player pieces captured by the enemy do not continue. Enemy prisoners still present after victory join the player band, preserve their origin faction, and evolve with the other surviving members.
 
-## State and profiles
+Rey+ and Reina+ are a joint evolution: both must survive in the carried band. If either is missing, a base royal partner does not evolve by itself.
 
-An evolvable unit declares:
+## State and persistence
 
-- `evolutionProfile` — the profile that owns its condition and capabilities;
-- `evolutionStage` — `base` or `evolved`.
+Every catalogue piece declares an `evolutionProfile`. Units persist:
 
-`src/core/evolution.js` is the profile registry and the only place that decides whether an evolution event activates a profile. `GameState.resolveEvolution()` is the generic entry point for gameplay events. Completed moves already emit `move-completed`; future profiles can consume that event or add another domain event without placing piece-specific conditions in the controller, renderer or AI.
+- `evolutionStage`: `base` or `evolved`;
+- optional `evolutionState` for per-encounter consumable uses.
 
-An evolved profile exposes a `capabilities` object. The first supported capability is a replacement movement profile, consumed by the shared rules engine. Future evolutions may add other explicit capabilities and their owning systems should read them from the same profile instead of checking a piece id directly.
+`src/core/evolution.js` owns profile capabilities and initializes consumable state. `src/core/campaign.js` builds the next band from active player survivors and recruited prisoners, removes losses, activates eligible evolutions and normalizes control for the next deployment.
 
-Evolution is permanent for the current unit. `evolutionStage` is authoritative game state, survives leaving the activation square, resets from the level definition and is serialized with the rest of the unit in session schema version `4`.
+`ProgressionStore.playerBand` keeps the complete carried roster between levels. The in-progress session schema is version `5` and also stores `teamEvolution`, so spent shields and royal swaps remain spent after using **Continuar partida**. Starting or resetting a new encounter recharges its one-use abilities from the level definition.
 
-## Pawn evolution
+## Implemented capabilities
 
-The pawn is the first implemented profile.
+### Peón+
 
-- A player pawn evolves after completing a move or capture on row `0`.
-- An enemy pawn evolves after completing a move or capture on the last board row.
-- Before evolution it moves one cell toward the opposite edge and captures on the two forward diagonals.
-- After evolution it moves one cell in either vertical direction and captures an opponent on any of the four adjacent diagonals.
-- Blocking elements, active units and frozen-piece rules continue to use the common movement helpers.
+- Moves one cell in either vertical direction.
+- Captures on all four adjacent diagonals.
+- Reaching the opposite edge no longer evolves it during the encounter.
 
-The same state transition runs for human actions and AI simulation. The renderer adds a small star to any evolved unit as temporary observable feedback independent of final piece artwork.
+### Caballo+
 
-## Pawn evolution lab
+- Keeps normal knight movement.
+- During deployment it may use the first four rows measured from its controlling side.
+- Other pieces remain restricted to the level's normal deployment rows.
 
-Open **Ajustes → Laboratorios de mecánicas → Evolución del peón** or use `?level=pawn-evolution-lab`.
+### Alfil+
 
-The scenario keeps the player turn and contains:
+- Keeps every normal diagonal destination.
+- On reaching a non-corner board edge along a clear diagonal, it may reflect once and continue in the same move.
+- The reflected component reverses on the edge that was hit.
+- Corners end the path, and active pieces or blocking board elements stop the path before a rebound.
+- It may capture after the rebound; capture still ends the path.
 
-- one base pawn at `(0, 1)`, one move away from its marked evolution cell `(0, 0)`;
-- four evolved pawns, each paired with an enemy on a different capture diagonal;
-- an enemy anchor that prevents the encounter from ending while targets remain.
+### Torre+
 
-Move the base pawn to the marked edge, select it again and verify that it can return. Select the four starred pawns to verify movement in both directions and captures to north-west, north-east, south-west and south-east. Press `R` at any time to reset the scenario.
+- Starts each encounter with one shield charge.
+- The first capture or destruction attempt against it is rejected before resolving damage.
+- The attacker is placed on the cell immediately beyond the rook in the direction of its original movement.
+- If that cell is outside the board, occupied, frozen or blocked, the attacker remains on its origin cell; the rook still survives and the charge is consumed.
+- Later attacks resolve normally.
 
-## Adding another evolution
+### Rey+ and Reina+
 
-1. Give the piece catalogue entry an `evolutionProfile`.
-2. Add that profile's condition and capabilities to `src/core/evolution.js`.
-3. Emit any new generic domain event through `GameState.resolveEvolution()`.
-4. Extend only the systems that own new capability types; do not branch on a level id or unit id.
-5. Add rule tests for both teams, persistence after activation and interaction with blockers/captures where relevant.
-6. Add or extend a mechanics lab when repeated manual validation benefits from a prepared board.
+- When both evolved pieces are active, selecting either exposes the other as a special destination.
+- The action exchanges their board coordinates without capturing or changing facing/faction.
+- The pair shares one swap charge per encounter.
+- If either member is missing or inactive, the action is unavailable.
+
+## Level transition
+
+`tutorial-01` now unlocks `tutorial-02`. Level 2 reuses the same board, obstacles, opponent, deployment phase, music and AI configuration as level 1. Its player units come from the carried campaign band rather than `createInitialBand()`:
+
+1. active player pieces survive;
+2. destroyed pieces and player prisoners are removed;
+3. surviving enemy prisoners recruited by the player are added;
+4. eligible pieces evolve;
+5. the resulting roster is persisted and deployed in level 2.
+
+Opening `?level=tutorial-02` without a saved carried band creates an evolved default band for direct development testing. Add `&faction=green`, `&faction=red` or `&faction=yellow` to test Alfil+, Torre+ or Caballo+ directly. A real carried band always takes precedence over this shortcut.
+
+## Manual validation
+
+In level 2:
+
+- select Caballo+ during deployment and confirm rows `4` through `7` are available;
+- select Alfil+ near a diagonal edge and inspect destinations after the rebound;
+- attack Torre+ twice and confirm only the first attack is rejected;
+- select Rey+ or Reina+ and use the purple double-bordered destination on its partner once;
+- select Peón+ away from an edge to inspect both moves and all available diagonals.
+
+The existing `pawn-evolution-lab` remains a focused Peón+ capability lab. It no longer simulates the obsolete edge-activation condition.
