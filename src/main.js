@@ -1,16 +1,16 @@
 import { GAME_CONFIG } from './config/gameConfig.js';
 import { FACTIONS, PLAYER_FACTION_IDS } from './content/factions.js';
-import { getLevel, getNextLevel } from './content/levels/index.js?v=20260821-evolution-2';
-import { GameState } from './core/GameState.js?v=20260821-evolution-2';
+import { getLevel, getNextLevel } from './content/levels/index.js?v=20260821-evolution-3';
+import { GameState } from './core/GameState.js?v=20260821-evolution-3';
 import { AssetRegistry } from './systems/AssetRegistry.js';
 import { AudioManager } from './systems/AudioManager.js?v=20260814-1700';
-import { GameSessionStore } from './systems/GameSessionStore.js?v=20260821-evolution-2';
-import { ProgressionStore } from './systems/ProgressionStore.js?v=20260821-evolution-2';
+import { GameSessionStore } from './systems/GameSessionStore.js?v=20260821-evolution-3';
+import { ProgressionStore } from './systems/ProgressionStore.js?v=20260821-evolution-3';
 import { TutorialSystem } from './systems/TutorialSystem.js';
-import { BoardRenderer } from './render/BoardRenderer.js?v=20260821-evolution-2';
-import { AIController } from './ai/AIController.js?v=20260821-evolution-2';
-import { legalActionsFor } from './core/rules.js?v=20260821-evolution-2';
-import { buildNextPlayerBand } from './core/campaign.js?v=20260821-evolution-2';
+import { BoardRenderer } from './render/BoardRenderer.js?v=20260821-evolution-3';
+import { AIController } from './ai/AIController.js?v=20260821-evolution-3';
+import { legalActionsFor } from './core/rules.js?v=20260821-evolution-3';
+import { buildNextPlayerBand } from './core/campaign.js?v=20260821-evolution-3';
 
 class GameApp {
   constructor() {
@@ -570,13 +570,17 @@ class GameApp {
     replay.addEventListener('click', () => this.resetLevel());
     actions.append(replay);
 
-    const nextLevel = winner === 'player' ? getNextLevel(this.level, { playerBand: this.nextPlayerBand }) : null;
-    if (nextLevel) {
+    if (winner === 'player' && this.level.nextLevelId) {
       const next = document.createElement('button');
       next.type = 'button';
       next.className = 'primary-button';
       next.textContent = 'Siguiente nivel';
-      next.addEventListener('click', () => this.loadLevel(nextLevel));
+      next.addEventListener('click', () => {
+        const nextLevel = getNextLevel(this.level, { playerBand: this.nextPlayerBand });
+        if (!nextLevel) return;
+        if (this.resultDialog.open) this.resultDialog.close();
+        this.loadLevel(nextLevel);
+      });
       actions.append(next);
     }
 

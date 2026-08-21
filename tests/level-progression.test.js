@@ -44,8 +44,20 @@ test('the next band keeps survivors and recruits, drops losses and evolves eligi
   const band = buildNextPlayerBand(units, 'tutorial-01');
 
   assert.deepEqual(band.map(unit => unit.pieceType).sort(), ['bishop', 'king', 'queen']);
-  assert.ok(band.every(unit => unit.team === 'player' && isEvolved(unit)));
-  assert.ok(band.some(unit => unit.id === 'player-recruit-tutorial-01-enemy-bishop' && unit.faction === 'red'));
+  assert.ok(band.every(unit => unit.team === 'player'));
+  assert.ok(band.filter(unit => ['king', 'queen'].includes(unit.pieceType)).every(isEvolved));
+  const recruit = band.find(unit => unit.id === 'player-recruit-tutorial-01-enemy-bishop');
+  assert.ok(recruit && recruit.faction === 'red');
+  assert.equal(isEvolved(recruit), false);
+
+  const second = getLevel('tutorial-02', { playerFactionId: 'green', playerBand: band });
+  const deployedBand = second.units.filter(unit => unit.team === 'player');
+  assert.equal(deployedBand.length, band.length);
+  assert.equal(isEvolved(deployedBand.find(unit => unit.id === recruit.id)), false);
+  assert.ok(deployedBand.filter(unit => ['king', 'queen'].includes(unit.pieceType)).every(isEvolved));
+
+  const afterAnotherVictory = buildNextPlayerBand(band, 'tutorial-02');
+  assert.equal(isEvolved(afterAnotherVictory.find(unit => unit.id === recruit.id)), true);
 });
 
 test('level 2 uses the carried composition and resets it into deployment', () => {

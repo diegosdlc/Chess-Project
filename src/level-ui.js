@@ -1,4 +1,4 @@
-import { listMechanicLabs } from './content/levels/index.js?v=20260821-evolution-2';
+import { listMechanicLabs } from './content/levels/index.js?v=20260821-evolution-3';
 
 function mechanicsLabButtons() {
   return listMechanicLabs()
@@ -38,7 +38,7 @@ const NOTEBOOK_SECTIONS = {
     },
     {
       title: 'Reglas · evoluciones',
-      html: '<ul><li>Peón+: mueve en ambos sentidos y captura en cuatro diagonales.</li><li>Caballo+: despliega hasta la cuarta fila.</li><li>Alfil+: puede rebotar una vez en el borde.</li><li>Torre+: rechaza el primer ataque recibido.</li><li>Rey y Reina+: intercambian posiciones una vez.</li></ul>'
+      html: '<p>El peón evoluciona al alcanzar el borde opuesto. Tras una victoria, evolucionan las piezas supervivientes que ya pertenecían a tu banda; los nuevos reclutas se incorporan sin evolucionar.</p><ul><li>Peón+: mueve en ambos sentidos y captura en cuatro diagonales.</li><li>Caballo+: despliega hasta la cuarta fila.</li><li>Alfil+: puede rebotar una vez en el borde.</li><li>Torre+: rechaza el primer ataque recibido.</li><li>Rey y Reina+: intercambian posiciones una vez.</li></ul>'
     }
   ],
   settings: [

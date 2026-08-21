@@ -1,6 +1,6 @@
 # Piece evolution and carried bands
 
-Evolution is shared campaign state, not standard chess promotion. For the current prototype, a piece evolves when it survives a victorious encounter and continues into the next player band. Destroyed pieces and player pieces captured by the enemy do not continue. Enemy prisoners still present after victory join the player band, preserve their origin faction, and evolve with the other surviving members.
+Evolution is shared campaign state, not standard chess promotion. For the current prototype, a piece that already belongs to the player band evolves when it survives a victorious encounter and continues into the next level. Destroyed pieces and player pieces captured by the enemy do not continue. Enemy prisoners still present after victory join the player band and preserve their origin faction, but they do not evolve during that transition. Once a recruit has played an encounter as a band member, it may evolve by surviving a later victory.
 
 Rey+ and Reina+ are a joint evolution: both must survive in the carried band. If either is missing, a base royal partner does not evolve by itself.
 
@@ -11,7 +11,7 @@ Every catalogue piece declares an `evolutionProfile`. Units persist:
 - `evolutionStage`: `base` or `evolved`;
 - optional `evolutionState` for per-encounter consumable uses.
 
-`src/core/evolution.js` owns profile capabilities and initializes consumable state. `src/core/campaign.js` builds the next band from active player survivors and recruited prisoners, removes losses, activates eligible evolutions and normalizes control for the next deployment.
+`src/core/evolution.js` owns profile capabilities, event conditions and consumable state. `src/core/campaign.js` evolves active player survivors first, then adds new prisoners without evolving them, removes losses and normalizes control for the next deployment.
 
 `ProgressionStore.playerBand` keeps the complete carried roster between levels. The in-progress session schema is version `5` and also stores `teamEvolution`, so spent shields and royal swaps remain spent after using **Continuar partida**. Starting or resetting a new encounter recharges its one-use abilities from the level definition.
 
@@ -21,7 +21,7 @@ Every catalogue piece declares an `evolutionProfile`. Units persist:
 
 - Moves one cell in either vertical direction.
 - Captures on all four adjacent diagonals.
-- Reaching the opposite edge no longer evolves it during the encounter.
+- A base pawn evolves immediately when a move or capture reaches the opposite edge.
 
 ### Caballo+
 
@@ -58,8 +58,8 @@ Every catalogue piece declares an `evolutionProfile`. Units persist:
 
 1. active player pieces survive;
 2. destroyed pieces and player prisoners are removed;
-3. surviving enemy prisoners recruited by the player are added;
-4. eligible pieces evolve;
+3. eligible pieces that already belonged to the band evolve;
+4. surviving enemy prisoners recruited by the player are then added without evolving;
 5. the resulting roster is persisted and deployed in level 2.
 
 Opening `?level=tutorial-02` without a saved carried band creates an evolved default band for direct development testing. Add `&faction=green`, `&faction=red` or `&faction=yellow` to test Alfil+, Torre+ or Caballo+ directly. A real carried band always takes precedence over this shortcut.
@@ -74,4 +74,4 @@ In level 2:
 - select Rey+ or Reina+ and use the purple double-bordered destination on its partner once;
 - select Peón+ away from an edge to inspect both moves and all available diagonals.
 
-The existing `pawn-evolution-lab` remains a focused Peón+ capability lab. It no longer simulates the obsolete edge-activation condition.
+The existing `pawn-evolution-lab` includes a base pawn one move from the opposite edge plus focused Peón+ movement and capture scenarios.

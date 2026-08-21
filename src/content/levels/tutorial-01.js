@@ -1,4 +1,4 @@
-import { createInitialBand, FACINGS, PIECES } from '../bands.js?v=20260821-evolution-2';
+import { createInitialBand, FACINGS, PIECES } from '../bands.js?v=20260821-evolution-3';
 import { STANDARD_BOARD } from './shared.js';
 
 const PLAYER_POSITIONS = Object.freeze({

@@ -1,6 +1,6 @@
-import { getMechanicLabFactory, listMechanicLabs } from './labs/index.js?v=20260821-evolution-2';
-import { createTutorial01, tutorial01 } from './tutorial-01.js?v=20260821-evolution-2';
-import { createTutorial02, tutorial02 } from './tutorial-02.js?v=20260821-evolution-2';
+import { getMechanicLabFactory, listMechanicLabs } from './labs/index.js?v=20260821-evolution-3';
+import { createTutorial01, tutorial01 } from './tutorial-01.js?v=20260821-evolution-3';
+import { createTutorial02, tutorial02 } from './tutorial-02.js?v=20260821-evolution-3';
 
 const LEVEL_FACTORIES = new Map([
   [tutorial01.id, createTutorial01],

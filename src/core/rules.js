@@ -1,4 +1,4 @@
-import { moveProfileFor } from './evolution.js?v=20260821-evolution-2';
+import { moveProfileFor } from './evolution.js?v=20260821-evolution-3';
 
 export function inside(level, x, y) {
   const size = level.board.size ?? 8;

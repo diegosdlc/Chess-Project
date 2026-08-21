@@ -1,9 +1,10 @@
 import {
+  applyEvolutionEvent,
   createTeamEvolutionState,
   evolutionCapabilitiesFor,
   initialEvolutionState,
   normalizeEvolutionStage
-} from './evolution.js?v=20260821-evolution-2';
+} from './evolution.js?v=20260821-evolution-3';
 
 const NEXT_TEAM = Object.freeze({ player: 'enemy', enemy: 'player' });
 const OPPOSITE_FACING = Object.freeze({ north: 'south', south: 'north' });
@@ -18,7 +19,18 @@ export function completeUnitMove(state, level, unit, action) {
   if (!unit || !Number.isInteger(action?.x) || !Number.isInteger(action?.y)) return false;
   unit.x = action.x;
   unit.y = action.y;
-  return true;
+  return applyEvolutionEvent({
+    state,
+    level,
+    unit,
+    event: {
+      type: 'move-completed',
+      kind: action.kind ?? 'move',
+      x: action.x,
+      y: action.y,
+      targetId: action.targetId ?? null
+    }
+  });
 }
 
 function activeUnit(unit) {

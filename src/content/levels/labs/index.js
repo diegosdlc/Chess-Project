@@ -1,5 +1,5 @@
-import { createFacingLab, facingLab } from '../facing-lab.js?v=20260821-evolution-2';
-import { createPawnEvolutionLab, pawnEvolutionLab } from '../pawn-evolution-lab.js?v=20260821-evolution-2';
+import { createFacingLab, facingLab } from '../facing-lab.js?v=20260821-evolution-3';
+import { createPawnEvolutionLab, pawnEvolutionLab } from '../pawn-evolution-lab.js?v=20260821-evolution-3';
 
 export const MECHANIC_LABS = Object.freeze([
   Object.freeze({

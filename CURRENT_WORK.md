@@ -68,7 +68,8 @@ See `docs/MECHANICS_LABS.md` and `docs/FACING_LAB.md`.
 All current piece evolutions and the first carried-band transition are implemented.
 
 - Surviving player pieces and recruited prisoners form the next campaign band; destroyed pieces and player prisoners are removed.
-- Eligible survivors evolve between encounters. Rey+ and Reina+ require both members to survive.
+- Eligible pieces that already belonged to the band evolve between encounters. New recruits join without evolving and become eligible after surviving a later encounter. Rey+ and Reina+ require both members to survive.
+- Peons also evolve immediately when they reach the opposite board edge.
 - Peón+ moves both ways and captures on four diagonals.
 - Caballo+ deploys in the first four friendly rows.
 - Alfil+ may rebound once from a non-corner edge in one movement.

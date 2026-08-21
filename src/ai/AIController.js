@@ -1,5 +1,5 @@
-import { legalActionsFor, optionsFor } from '../core/rules.js?v=20260821-evolution-2';
-import { applyRookShieldRejection, applyRoyalSwap, completeUnitMove } from '../core/GameState.js?v=20260821-evolution-2';
+import { legalActionsFor, optionsFor } from '../core/rules.js?v=20260821-evolution-3';
+import { applyRookShieldRejection, applyRoyalSwap, completeUnitMove } from '../core/GameState.js?v=20260821-evolution-3';
 
 export class AIController {
   constructor(config = {}) {

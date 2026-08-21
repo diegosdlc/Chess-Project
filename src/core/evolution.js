@@ -7,7 +7,12 @@ const EMPTY_CAPABILITIES = Object.freeze({});
 
 const EVOLUTION_PROFILES = Object.freeze({
   pawn: Object.freeze({
-    capabilities: Object.freeze({ moveProfile: 'evolved-pawn' })
+    capabilities: Object.freeze({ moveProfile: 'evolved-pawn' }),
+    shouldEvolve({ level, unit, event }) {
+      if (event.type !== 'move-completed') return false;
+      const oppositeEdge = unit.team === 'player' ? 0 : (level.board.size ?? 8) - 1;
+      return event.y === oppositeEdge;
+    }
   }),
   knight: Object.freeze({
     capabilities: Object.freeze({ deploymentDepth: 4 })
@@ -61,6 +66,13 @@ export function activateEvolution(unit) {
   unit.evolutionStage = EVOLUTION_STAGES.EVOLVED;
   unit.evolutionState = initialEvolutionState(unit);
   return true;
+}
+
+export function applyEvolutionEvent({ state, level, unit, event }) {
+  if (!unit?.evolutionProfile || isEvolved(unit)) return false;
+  const profile = EVOLUTION_PROFILES[unit.evolutionProfile];
+  if (!profile?.shouldEvolve?.({ state, level, unit, event })) return false;
+  return activateEvolution(unit);
 }
 
 export function evolveSurvivingBand(units) {

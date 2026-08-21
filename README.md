@@ -99,15 +99,15 @@ Registered labs:
 - may use generic level behavior hooks for test-only conveniences, but core systems must not hard-code individual lab ids.
 
 The current `facing-lab` validates north/south state changes and facing-specific artwork selection.
-The `pawn-evolution-lab` provides evolved pawns with prepared movement and four-diagonal capture cases.
+The `pawn-evolution-lab` provides an edge-activation case plus prepared Peón+ movement and four-diagonal capture cases.
 
 See [`docs/MECHANICS_LABS.md`](docs/MECHANICS_LABS.md), [`docs/FACING_LAB.md`](docs/FACING_LAB.md) and [`docs/EVOLUTION.md`](docs/EVOLUTION.md).
 
 ## Piece evolution
 
-Evolution is a generic state/profile system. For the current prototype, pieces that survive a victorious encounter evolve in the carried player band for the next level; Rey+ and Reina+ require both members to survive. Peón+, Caballo+, Alfil+, Torre+ and the royal pair all have implemented capabilities.
+Evolution is a generic state/profile system. A pawn also evolves immediately on reaching the opposite edge. Between levels, pieces that already belonged to the player band evolve after surviving a victorious encounter; newly captured recruits join in base state and become eligible after surviving a later encounter. Rey+ and Reina+ require both members to survive. Peón+, Caballo+, Alfil+, Torre+ and the royal pair all have implemented capabilities.
 
-Level 1 now unlocks level 2. The second encounter reuses the first level's board/configuration while preserving surviving pieces, recruits, origin factions and evolution state. Evolution is shared by player interaction, legal-action generation and AI simulation; evolved units currently receive a small star marker. See [`docs/EVOLUTION.md`](docs/EVOLUTION.md).
+Level 1 now unlocks level 2. The second encounter reuses the first level's board/configuration while preserving surviving pieces, base-state recruits, origin factions and evolution state. Evolution is shared by player interaction, legal-action generation and AI simulation; evolved units currently receive a small star marker. See [`docs/EVOLUTION.md`](docs/EVOLUTION.md).
 
 ## Tutorial preview
 

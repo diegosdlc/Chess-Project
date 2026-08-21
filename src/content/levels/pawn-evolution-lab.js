@@ -1,4 +1,4 @@
-import { PIECES } from '../bands.js?v=20260821-evolution-2';
+import { PIECES } from '../bands.js?v=20260821-evolution-3';
 import { createLabBehavior } from './labs/behavior.js';
 import { STANDARD_BOARD } from './shared.js';
 
@@ -65,11 +65,11 @@ export function createPawnEvolutionLab() {
     lab: Object.freeze({
       enabled: true,
       category: 'evolution',
-      description: 'Prueba los movimientos y capturas del peón evolucionado.'
+      description: 'Evoluciona un peón en el borde y prueba sus movimientos y capturas.'
     }),
     behavior: createLabBehavior({ keepPlayerTurn: true }),
     units: [
-      pawn({ id: 'pawn-evolved-edge', name: 'Peón evolucionado en el borde', evolutionStage: 'evolved', x: 0, y: 0 }),
+      pawn({ id: 'pawn-ready-to-evolve', name: 'Peón preparado para evolucionar', x: 0, y: 1 }),
       pawn({ id: 'pawn-evolved-north-west', name: 'Peón evolucionado: captura noroeste', evolutionStage: 'evolved', x: 2, y: 2 }),
       pawn({ id: 'target-north-west', team: 'enemy', faction: 'red', name: 'Objetivo noroeste', x: 1, y: 1 }),
       pawn({ id: 'pawn-evolved-north-east', name: 'Peón evolucionado: captura noreste', evolutionStage: 'evolved', x: 5, y: 2 }),

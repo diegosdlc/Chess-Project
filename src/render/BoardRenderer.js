@@ -1,6 +1,6 @@
 import { cellBox, insetBox, place } from '../core/geometry.js';
-import { optionsFor } from '../core/rules.js?v=20260821-evolution-2';
-import { evolutionCapabilitiesFor, isEvolved } from '../core/evolution.js?v=20260821-evolution-2';
+import { optionsFor } from '../core/rules.js?v=20260821-evolution-3';
+import { evolutionCapabilitiesFor, isEvolved } from '../core/evolution.js?v=20260821-evolution-3';
 
 export class BoardRenderer {
   constructor({ board, level, state, assets, onCellClick, onCaptureAction }) {
