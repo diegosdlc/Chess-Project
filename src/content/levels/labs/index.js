@@ -1,5 +1,6 @@
 import { createFacingLab, facingLab } from '../facing-lab.js?v=20260821-evolution-3';
 import { createPawnEvolutionLab, pawnEvolutionLab } from '../pawn-evolution-lab.js?v=20260821-evolution-3';
+import { createDeploymentBudgetLab, deploymentBudgetLab } from '../deployment-budget-lab.js?v=20260821-budget-lab-1';
 
 export const MECHANIC_LABS = Object.freeze([
   Object.freeze({
@@ -13,6 +14,12 @@ export const MECHANIC_LABS = Object.freeze([
     name: 'Evolución del peón',
     description: 'Prueba movimiento bidireccional y captura en cuatro diagonales del Peón+.',
     createLevel: createPawnEvolutionLab
+  }),
+  Object.freeze({
+    id: deploymentBudgetLab.id,
+    name: 'Presupuesto de despliegue',
+    description: 'Compara las seis piezas base y evolucionadas con un presupuesto de 50 puntos.',
+    createLevel: createDeploymentBudgetLab
   })
 ]);
 
