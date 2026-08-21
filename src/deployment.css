@@ -58,13 +58,25 @@
   min-height:0;
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
-  align-items:center;
-  gap:2%;
-  padding:1.5% 0 0;
+  align-content:start;
+  align-items:start;
+  gap:3% 2%;
+  padding:1.5% 1% 2% 0;
+  overflow-y:auto;
+  scrollbar-width:thin;
+}
+
+.deployment-piece-card{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  align-items:stretch;
 }
 
 .deployment-piece{
   position:relative;
+  width:100%;
   min-width:0;
   aspect-ratio:1 / 1.18;
   border:0;
@@ -76,11 +88,26 @@
   border-radius:46% 42% 48% 44%;
   box-shadow:0 5px 8px rgba(49,42,30,.22);
   cursor:pointer;
-  transition:transform .14s ease,filter .14s ease;
+  transition:transform .14s ease,filter .14s ease,opacity .14s ease;
   -webkit-tap-highlight-color:transparent;
 }
 
-.deployment-piece:hover,
+.deployment-piece.in-reserve{
+  opacity:.76;
+  filter:saturate(.74);
+}
+
+.deployment-piece.in-lineup{
+  box-shadow:0 5px 8px rgba(49,42,30,.22),0 0 0 2px rgba(90,122,78,.44);
+}
+
+.deployment-piece:disabled{
+  cursor:not-allowed;
+  opacity:.34;
+  filter:grayscale(.55);
+}
+
+.deployment-piece:hover:not(:disabled),
 .deployment-piece:focus-visible{
   transform:translateY(-4px) rotate(-1deg) scale(1.04);
 }
@@ -120,6 +147,31 @@
 
 .deployment-piece.has-image .deployment-piece-fallback{opacity:0}
 
+.deployment-piece-cost,
+.deployment-piece-evolved{
+  position:absolute;
+  z-index:4;
+  top:2%;
+  padding:1px 4px;
+  border-radius:8px;
+  background:rgba(245,237,205,.9);
+  color:#38423b;
+  font-family:Arial,sans-serif;
+  font-size:clamp(.45rem,.56vw,.58rem);
+  font-weight:800;
+  line-height:1.25;
+  box-shadow:1px 1px 2px rgba(49,42,30,.18);
+}
+
+.deployment-piece-cost{right:2%}
+
+.deployment-piece-evolved{
+  left:2%;
+  min-width:1.25em;
+  text-align:center;
+  background:rgba(216,187,103,.92);
+}
+
 .deployment-piece-name{
   position:absolute;
   z-index:3;
@@ -131,6 +183,19 @@
   font-weight:700;
   text-align:center;
   text-shadow:none;
+}
+
+.deployment-piece-remove{
+  align-self:center;
+  border:0;
+  padding:1px 5px;
+  background:transparent;
+  color:#7b4b42;
+  font-family:Arial,sans-serif;
+  font-size:clamp(.44rem,.55vw,.58rem);
+  font-weight:700;
+  text-decoration:underline;
+  cursor:pointer;
 }
 
 .deployment-status{
@@ -170,11 +235,17 @@
   }
 
   .deployment-pieces{
-    gap:1%;
+    gap:2.5% 1%;
   }
 
   .deployment-piece-name{
     font-size:clamp(.5rem,2.1vw,.65rem);
+  }
+
+  .deployment-piece-cost,
+  .deployment-piece-evolved,
+  .deployment-piece-remove{
+    font-size:clamp(.43rem,1.8vw,.56rem);
   }
 
   .deployment-status{
