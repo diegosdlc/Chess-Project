@@ -1,4 +1,5 @@
 import { createInitialBand, FACINGS, PIECES } from '../bands.js?v=20260821-evolution-3';
+import { levelPointLimit } from '../balance.js?v=20260821-budget-1';
 import { STANDARD_BOARD } from './shared.js';
 
 const PLAYER_POSITIONS = Object.freeze({
@@ -95,6 +96,14 @@ export function createTutorialEncounter({
   playerBand = null,
   tutorialSteps = []
 }) {
+  const playerUnits = cleanCarriedBand(playerBand, playerFactionId);
+  const enemyUnits = createInitialBand({
+    team: 'enemy',
+    factionId: 'green',
+    positions: ENEMY_POSITIONS,
+    facing: FACINGS.SOUTH
+  });
+
   return Object.freeze({
     id,
     name,
@@ -106,7 +115,8 @@ export function createTutorialEncounter({
     },
     deployment: {
       team: 'player',
-      rows: [6, 7]
+      rows: [6, 7],
+      pointLimit: levelPointLimit(id, enemyUnits)
     },
     music: {
       track: './assets/music/magiksolo-pirate-tavern-full-version-167990.mp3',
@@ -123,13 +133,8 @@ export function createTutorialEncounter({
       captureChoice: true
     },
     units: [
-      ...cleanCarriedBand(playerBand, playerFactionId),
-      ...createInitialBand({
-        team: 'enemy',
-        factionId: 'green',
-        positions: ENEMY_POSITIONS,
-        facing: FACINGS.SOUTH
-      })
+      ...playerUnits,
+      ...enemyUnits
     ],
     boardElements: TUTORIAL_OBSTACLES,
     specialTiles: [],
