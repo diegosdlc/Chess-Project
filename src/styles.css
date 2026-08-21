@@ -183,6 +183,22 @@ button{font:inherit;letter-spacing:.02em}
   outline-offset:3px;
   animation:capture-pulse .8s ease-in-out infinite alternate;
 }
+.unit.evolved::after{
+  content:"✦";
+  position:absolute;
+  z-index:3;
+  top:-20%;
+  right:-18%;
+  display:grid;
+  place-items:center;
+  width:42%;
+  aspect-ratio:1;
+  color:#fff4a8;
+  font-size:clamp(.55rem,1.5vw,1rem);
+  line-height:1;
+  text-shadow:0 1px 3px #5b4214,0 0 7px rgba(255,221,91,.9);
+  pointer-events:none;
+}
 .prisoner{
   z-index:5;
   font-size:clamp(.45rem,1.15vw,.9rem);

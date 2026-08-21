@@ -288,8 +288,7 @@ class GameApp {
 
   moveUnit(unit, option) {
     this.state.leaveOrigin(unit);
-    unit.x = option.x;
-    unit.y = option.y;
+    this.state.completeMove(unit, option);
     this.tutorial.notify('move-completed');
     this.finishMove();
   }
@@ -329,8 +328,7 @@ class GameApp {
       target.y = null;
     }
 
-    unit.x = pending.x;
-    unit.y = pending.y;
+    this.state.completeMove(unit, { ...pending, kind: action });
     this.tutorial.notify('capture-resolved');
     this.finishMove();
   }
@@ -443,8 +441,7 @@ class GameApp {
       target.y = null;
     }
 
-    unit.x = action.x;
-    unit.y = action.y;
+    this.state.completeMove(unit, action);
     this.finishMove();
   }
 

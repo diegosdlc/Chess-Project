@@ -1,5 +1,6 @@
 import { cellBox, insetBox, place } from '../core/geometry.js';
 import { optionsFor } from '../core/rules.js';
+import { isEvolved } from '../core/evolution.js';
 
 export class BoardRenderer {
   constructor({ board, level, state, assets, onCellClick, onCaptureAction }) {
@@ -94,7 +95,8 @@ export class BoardRenderer {
     const piece = document.createElement('button');
     piece.type = 'button';
     piece.className = `unit ${unit.id === this.state.selectedId ? 'selected' : ''} ${this.state.pendingCapture?.targetId === unit.id ? 'awaiting-capture' : ''}`;
-    piece.setAttribute('aria-label', unit.name);
+    piece.classList.toggle('evolved', isEvolved(unit));
+    piece.setAttribute('aria-label', `${unit.name}${isEvolved(unit) ? ', evolucionada' : ''}`);
     this.applyFactionPalette(piece, unit);
 
     const fallback = document.createElement('span');

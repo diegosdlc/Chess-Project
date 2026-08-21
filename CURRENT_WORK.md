@@ -1,6 +1,6 @@
 # Turn Over — Current Work
 
-Last updated: 2026-08-20
+Last updated: 2026-08-21
 
 ## Project naming
 
@@ -58,8 +58,22 @@ The reusable mechanics-lab framework is on `main`.
 - Registered labs automatically become directly addressable by level id and appear in **Ajustes → Laboratorios de mecánicas**.
 - Shared test-only lifecycle behavior uses generic level hooks rather than hard-coded lab ids in core systems.
 - The current `facing-lab` validates orientation state changes and front/back artwork selection with temporary SVG assets.
+- `pawn-evolution-lab` provides one activation case and four prepared diagonal-capture cases while retaining the player turn.
 
 See `docs/MECHANICS_LABS.md` and `docs/FACING_LAB.md`.
+
+### Piece evolution
+
+The generic evolution framework and first pawn profile are implemented.
+
+- Units declare an evolution profile and persist `base` / `evolved` state.
+- Profiles own their activation condition and evolved capabilities; other pieces can add different profiles without adding piece-specific branches to the controller or AI.
+- Pawns evolve on reaching the opposite board edge, then move one cell in either vertical direction and capture on all four adjacent diagonals.
+- Human moves, captures and AI simulations apply the same evolution event.
+- Evolved units display a temporary star marker.
+- Session schema version `4` persists evolution state.
+
+See `docs/EVOLUTION.md`.
 
 ### Tutorial obstacles
 
@@ -75,7 +89,7 @@ See `assets/board-elements/README.md`.
 
 ## Session and turn lifecycle
 
-A session snapshot is saved during deployment, after play starts and after each completed move. It stores the selected player faction, serialized units (including facing), active turn, finished state and lifecycle phase. Completed matches clear the in-progress session; campaign progression remains separate in `ProgressionStore`.
+A session snapshot is saved during deployment, after play starts and after each completed move. It stores the selected player faction, serialized units (including facing and evolution stage), active turn, finished state and lifecycle phase. Completed matches clear the in-progress session; campaign progression remains separate in `ProgressionStore`.
 
 The no-legal-moves lifecycle is implemented: a blocked side loses its turn; if neither side has a legal move, the encounter ends with **Tablas** and offers **Reiniciar encuentro**. Human and AI use the same legal-move source.
 

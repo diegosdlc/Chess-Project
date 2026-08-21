@@ -11,7 +11,7 @@ export const PIECES = Object.freeze({
   bishop: Object.freeze({ name: 'Alfil', fallbackGlyph: '♝', moveProfile: 'diagonal' }),
   knight: Object.freeze({ name: 'Caballo', fallbackGlyph: '♞', moveProfile: 'knight' }),
   rook: Object.freeze({ name: 'Torre', fallbackGlyph: '♜', moveProfile: 'orthogonal' }),
-  pawn: Object.freeze({ name: 'Peón', fallbackGlyph: '♟', moveProfile: 'pawn' })
+  pawn: Object.freeze({ name: 'Peón', fallbackGlyph: '♟', moveProfile: 'pawn', evolutionProfile: 'pawn' })
 });
 
 export function createInitialBand({ team, factionId, positions, facing }) {
@@ -44,6 +44,8 @@ function createUnit({ id, team, faction, pieceType, position, facing }) {
     pieceType,
     fallbackGlyph: piece.fallbackGlyph,
     moveProfile: piece.moveProfile,
+    evolutionProfile: piece.evolutionProfile ?? null,
+    evolutionStage: piece.evolutionProfile ? 'base' : null,
     x: position.x,
     y: position.y
   };

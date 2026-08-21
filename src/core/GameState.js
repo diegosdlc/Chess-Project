@@ -1,3 +1,5 @@
+import { applyEvolutionEvent, normalizeEvolutionStage } from './evolution.js';
+
 const NEXT_TEAM = Object.freeze({ player: 'enemy', enemy: 'player' });
 const OPPOSITE_FACING = Object.freeze({ north: 'south', south: 'north' });
 
@@ -5,6 +7,24 @@ function clone(value) {
   return typeof structuredClone === 'function'
     ? structuredClone(value)
     : JSON.parse(JSON.stringify(value));
+}
+
+export function completeUnitMove(state, level, unit, action) {
+  if (!unit || !Number.isInteger(action?.x) || !Number.isInteger(action?.y)) return false;
+  unit.x = action.x;
+  unit.y = action.y;
+  return applyEvolutionEvent({
+    state,
+    level,
+    unit,
+    event: {
+      type: 'move-completed',
+      kind: action.kind ?? 'move',
+      x: action.x,
+      y: action.y,
+      targetId: action.targetId ?? null
+    }
+  });
 }
 
 export class GameState {
@@ -16,6 +36,7 @@ export class GameState {
   reset() {
     this.units = clone(this.level.units).map(unit => ({
       ...unit,
+      evolutionStage: normalizeEvolutionStage(unit),
       captured: false,
       destroyed: false,
       capturedBy: null,
@@ -154,6 +175,14 @@ export class GameState {
     unit.x = null;
     unit.y = null;
     this.releaseFriendlyPrisonerFrom(originX, originY, unit.team);
+  }
+
+  completeMove(unit, action) {
+    return completeUnitMove(this, this.level, unit, action);
+  }
+
+  resolveEvolution(unit, event) {
+    return applyEvolutionEvent({ state: this, level: this.level, unit, event });
   }
 
   changeTurn() {

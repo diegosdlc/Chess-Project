@@ -4,6 +4,6 @@ export const GAME_CONFIG = Object.freeze({
   tutorialQueryParam: 'tutorial',
   progressionStorageKey: 'bandas-del-tablero:progression:v1',
   sessionStorageKey: 'bandas-del-tablero:session:v1',
-  sessionSchemaVersion: 3,
+  sessionSchemaVersion: 4,
   tutorialStoragePrefix: 'bandas-del-tablero:tutorial:'
 });

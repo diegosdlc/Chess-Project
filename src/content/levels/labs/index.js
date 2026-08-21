@@ -1,4 +1,5 @@
 import { createFacingLab, facingLab } from '../facing-lab.js';
+import { createPawnEvolutionLab, pawnEvolutionLab } from '../pawn-evolution-lab.js';
 
 export const MECHANIC_LABS = Object.freeze([
   Object.freeze({
@@ -6,6 +7,12 @@ export const MECHANIC_LABS = Object.freeze([
     name: 'Orientación de piezas',
     description: 'Prueba frontal/espalda y cambios de encaramiento.',
     createLevel: createFacingLab
+  }),
+  Object.freeze({
+    id: pawnEvolutionLab.id,
+    name: 'Evolución del peón',
+    description: 'Evoluciona un peón y prueba movimiento bidireccional y captura en cuatro diagonales.',
+    createLevel: createPawnEvolutionLab
   })
 ]);
 

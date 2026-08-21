@@ -7,7 +7,7 @@ Do not open `index.html` directly with `file:///`: Chromium browsers may display
 ## Project structure
 
 - `src/main.js` — application controller, lifecycle orchestration, deployment and turn flow.
-- `src/core/` — game state, geometry and movement rules.
+- `src/core/` — game state, geometry, movement rules and piece-evolution profiles.
 - `src/ai/` — reusable AI over the shared legal-action generator.
 - `src/render/` — board, piece and terrain rendering.
 - `src/systems/` — assets, audio, sessions, progression and tutorial systems.
@@ -97,8 +97,15 @@ Registered labs:
 - may use generic level behavior hooks for test-only conveniences, but core systems must not hard-code individual lab ids.
 
 The current `facing-lab` validates north/south state changes and facing-specific artwork selection.
+The `pawn-evolution-lab` provides a pawn at the activation edge plus prepared movement and four-diagonal capture cases.
 
-See [`docs/MECHANICS_LABS.md`](docs/MECHANICS_LABS.md) and [`docs/FACING_LAB.md`](docs/FACING_LAB.md).
+See [`docs/MECHANICS_LABS.md`](docs/MECHANICS_LABS.md), [`docs/FACING_LAB.md`](docs/FACING_LAB.md) and [`docs/EVOLUTION.md`](docs/EVOLUTION.md).
+
+## Piece evolution
+
+Evolution is a generic state/profile system: each piece type can define its own activation condition and evolved capabilities. The pawn is the first implemented evolution. Reaching the opposite edge permanently changes it to a bidirectional one-cell mover that can capture on all four adjacent diagonals.
+
+Evolution is shared by player interaction, legal-action generation and AI simulation. Its state is saved with the unit, and evolved units currently receive a small star marker. See [`docs/EVOLUTION.md`](docs/EVOLUTION.md).
 
 ## Tutorial preview
 
@@ -116,7 +123,7 @@ The app opens on an illustrated 1536×960 start-screen composition built from We
 
 The in-level UI uses a notebook with **Banda**, **Misión**, **Reglas** and **Ajustes** sections. During deployment, the notebook content area temporarily becomes the deployment panel; after **Iniciar partida**, normal notebook navigation returns.
 
-An in-progress game is saved locally during deployment, after setup and after each completed move. **Continuar partida** restores the active level, selected faction, serialized units (including facing), lifecycle phase and turn. Sessions are local to the current browser/device and are cleared when the encounter ends.
+An in-progress game is saved locally during deployment, after setup and after each completed move. **Continuar partida** restores the active level, selected faction, serialized units (including facing and evolution state), lifecycle phase and turn. Sessions are local to the current browser/device and are cleared when the encounter ends.
 
 ## Project documentation
 
@@ -126,3 +133,4 @@ An in-progress game is saved locally during deployment, after setup and after ea
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — pre-match deployment contract.
 - [`docs/MECHANICS_LABS.md`](docs/MECHANICS_LABS.md) — reusable mechanics-lab workflow.
 - [`docs/FACING_LAB.md`](docs/FACING_LAB.md) — facing-lab test procedure.
+- [`docs/EVOLUTION.md`](docs/EVOLUTION.md) — generic evolution profiles and pawn-evolution rules/lab.

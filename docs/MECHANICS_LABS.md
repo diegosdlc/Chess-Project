@@ -38,3 +38,4 @@ A lab should be disposable: removing its registry entry and scenario should not 
 ## Current labs
 
 - `facing-lab` — validates `north` / `south` piece facing, artwork selection and in-match orientation changes.
+- `pawn-evolution-lab` — activates pawn evolution and provides four prepared diagonal-capture cases.

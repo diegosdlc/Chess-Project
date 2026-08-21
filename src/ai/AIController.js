@@ -1,4 +1,5 @@
 import { legalActionsFor, optionsFor } from '../core/rules.js';
+import { completeUnitMove } from '../core/GameState.js';
 
 export class AIController {
   constructor(config = {}) {
@@ -105,8 +106,7 @@ function simulate(state, level, action) {
     }
   }
 
-  unit.x = action.x;
-  unit.y = action.y;
+  completeUnitMove(next, level, unit, action);
   next.currentTurn = next.currentTurn === 'player' ? 'enemy' : 'player';
   return next;
 }
