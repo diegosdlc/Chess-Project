@@ -1,4 +1,4 @@
-import { createInitialBand, FACINGS } from '../bands.js';
+import { createInitialBand, FACINGS, PIECES } from '../bands.js?v=20260821-evolution-3';
 import { STANDARD_BOARD } from './shared.js';
 
 const PLAYER_POSITIONS = Object.freeze({
@@ -58,11 +58,47 @@ const TUTORIAL_OBSTACLES = Object.freeze([
   }
 ]);
 
-export function createTutorial01({ playerFactionId = 'green' } = {}) {
+function cleanCarriedBand(playerBand, playerFactionId) {
+  if (!Array.isArray(playerBand) || !playerBand.length) {
+    return createInitialBand({
+      team: 'player',
+      factionId: playerFactionId,
+      positions: PLAYER_POSITIONS,
+      facing: FACINGS.NORTH
+    });
+  }
+
+  return playerBand.map((unit, index) => {
+    const piece = PIECES[unit.pieceType];
+    return {
+      id: unit.id ?? `player-carried-${unit.pieceType}-${index + 1}`,
+      team: 'player',
+      faction: unit.faction ?? playerFactionId,
+      facing: unit.facing ?? FACINGS.NORTH,
+      name: unit.name ?? piece.name,
+      pieceType: unit.pieceType,
+      fallbackGlyph: unit.fallbackGlyph ?? piece.fallbackGlyph,
+      moveProfile: piece.moveProfile,
+      evolutionProfile: piece.evolutionProfile ?? null,
+      evolutionStage: unit.evolutionStage ?? 'base',
+      x: unit.x ?? 0,
+      y: unit.y ?? 7
+    };
+  });
+}
+
+export function createTutorialEncounter({
+  id,
+  name,
+  nextLevelId = null,
+  playerFactionId = 'green',
+  playerBand = null,
+  tutorialSteps = []
+}) {
   return Object.freeze({
-    id: 'tutorial-01',
-    name: 'Tutorial',
-    nextLevelId: null,
+    id,
+    name,
+    nextLevelId,
     board: STANDARD_BOARD,
     teams: {
       player: playerFactionId,
@@ -87,12 +123,7 @@ export function createTutorial01({ playerFactionId = 'green' } = {}) {
       captureChoice: true
     },
     units: [
-      ...createInitialBand({
-        team: 'player',
-        factionId: playerFactionId,
-        positions: PLAYER_POSITIONS,
-        facing: FACINGS.NORTH
-      }),
+      ...cleanCarriedBand(playerBand, playerFactionId),
       ...createInitialBand({
         team: 'enemy',
         factionId: 'green',
@@ -104,27 +135,39 @@ export function createTutorial01({ playerFactionId = 'green' } = {}) {
     specialTiles: [],
     tutorial: {
       enabledByDefault: false,
-      steps: [
-        {
-          id: 'select-piece',
-          text: 'Toca una de tus piezas para ver sus movimientos posibles.',
-          anchor: { type: 'unit', id: 'player-king' },
-          advanceOn: 'unit-selected'
-        },
-        {
-          id: 'move-piece',
-          text: 'Las casillas verdes son movimientos disponibles. Toca una para mover.',
-          anchor: { type: 'cell', x: 2, y: 6 },
-          advanceOn: 'move-completed'
-        },
-        {
-          id: 'capture-choice',
-          text: 'Al atacar una pieza puedes capturarla o destruirla desde los botones que emergen de ella.',
-          anchor: { type: 'board' },
-          advanceOn: 'capture-resolved'
-        }
-      ]
+      steps: tutorialSteps
     }
+  });
+}
+
+const TUTORIAL_STEPS = Object.freeze([
+  {
+    id: 'select-piece',
+    text: 'Toca una de tus piezas para ver sus movimientos posibles.',
+    anchor: { type: 'unit', id: 'player-king' },
+    advanceOn: 'unit-selected'
+  },
+  {
+    id: 'move-piece',
+    text: 'Las casillas verdes son movimientos disponibles. Toca una para mover.',
+    anchor: { type: 'cell', x: 2, y: 6 },
+    advanceOn: 'move-completed'
+  },
+  {
+    id: 'capture-choice',
+    text: 'Al atacar una pieza puedes capturarla o destruirla desde los botones que emergen de ella.',
+    anchor: { type: 'board' },
+    advanceOn: 'capture-resolved'
+  }
+]);
+
+export function createTutorial01({ playerFactionId = 'green' } = {}) {
+  return createTutorialEncounter({
+    id: 'tutorial-01',
+    name: 'Nivel 1',
+    nextLevelId: 'tutorial-02',
+    playerFactionId,
+    tutorialSteps: TUTORIAL_STEPS
   });
 }
 

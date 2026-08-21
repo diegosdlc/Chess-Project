@@ -1,4 +1,10 @@
-import { applyEvolutionEvent, normalizeEvolutionStage } from './evolution.js';
+import {
+  applyEvolutionEvent,
+  createTeamEvolutionState,
+  evolutionCapabilitiesFor,
+  initialEvolutionState,
+  normalizeEvolutionStage
+} from './evolution.js?v=20260821-evolution-3';
 
 const NEXT_TEAM = Object.freeze({ player: 'enemy', enemy: 'player' });
 const OPPOSITE_FACING = Object.freeze({ north: 'south', south: 'north' });
@@ -27,6 +33,66 @@ export function completeUnitMove(state, level, unit, action) {
   });
 }
 
+function activeUnit(unit) {
+  return Boolean(unit && !unit.captured && !unit.destroyed);
+}
+
+function releaseFriendlyPrisoners(state, x, y, team) {
+  state.units
+    .filter(piece => piece.captured && !piece.destroyed && piece.x === x && piece.y === y && piece.team === team)
+    .forEach(piece => {
+      piece.captured = false;
+      piece.capturedBy = null;
+    });
+}
+
+export function applyRookShieldRejection(state, level, attacker, target) {
+  if (!activeUnit(attacker) || !activeUnit(target)) return false;
+  if (!evolutionCapabilitiesFor(target).rejectsFirstAttack) return false;
+  if ((target.evolutionState?.shieldCharges ?? 0) < 1) return false;
+
+  target.evolutionState.shieldCharges -= 1;
+  const dx = Math.sign(target.x - attacker.x);
+  const dy = Math.sign(target.y - attacker.y);
+  const x = target.x + dx;
+  const y = target.y + dy;
+  const size = level.board.size ?? 8;
+  const blocked = x < 0 || x >= size || y < 0 || y >= size ||
+    level.boardElements?.some(element => element.blocking && element.x === x && element.y === y) ||
+    state.units.some(unit => activeUnit(unit) && unit.x === x && unit.y === y) ||
+    state.units.some(unit => unit.captured && !unit.destroyed && unit.x === x && unit.y === y);
+
+  if (!blocked) {
+    const originX = attacker.x;
+    const originY = attacker.y;
+    attacker.x = null;
+    attacker.y = null;
+    releaseFriendlyPrisoners(state, originX, originY, attacker.team);
+    completeUnitMove(state, level, attacker, { kind: 'rejected', x, y });
+  }
+  return true;
+}
+
+export function applyRoyalSwap(state, first, second) {
+  if (!activeUnit(first) || !activeUnit(second) || first.team !== second.team) return false;
+  if ((state.teamEvolution?.[first.team]?.royalSwapCharges ?? 0) < 1) return false;
+  if (!evolutionCapabilitiesFor(first).royalSwap || !evolutionCapabilitiesFor(second).royalSwap) return false;
+  if (!['king', 'queen'].includes(first.pieceType) || !['king', 'queen'].includes(second.pieceType) || first.pieceType === second.pieceType) return false;
+
+  const firstPosition = { x: first.x, y: first.y };
+  const secondPosition = { x: second.x, y: second.y };
+  first.x = null;
+  first.y = null;
+  second.x = null;
+  second.y = null;
+  first.x = secondPosition.x;
+  first.y = secondPosition.y;
+  second.x = firstPosition.x;
+  second.y = firstPosition.y;
+  state.teamEvolution[first.team].royalSwapCharges -= 1;
+  return true;
+}
+
 export class GameState {
   constructor(level) {
     this.level = level;
@@ -37,6 +103,7 @@ export class GameState {
     this.units = clone(this.level.units).map(unit => ({
       ...unit,
       evolutionStage: normalizeEvolutionStage(unit),
+      evolutionState: initialEvolutionState(unit),
       captured: false,
       destroyed: false,
       capturedBy: null,
@@ -47,6 +114,7 @@ export class GameState {
     this.finished = false;
     this.pendingCapture = null;
     this.phase = this.level.deployment ? 'deployment' : 'play';
+    this.teamEvolution = createTeamEvolutionState(this.units);
 
     if (this.isDeploying()) {
       const team = this.deploymentTeam();
@@ -107,8 +175,15 @@ export class GameState {
     return this.level.deployment?.team ?? 'player';
   }
 
-  deploymentRows() {
-    return Array.isArray(this.level.deployment?.rows) ? this.level.deployment.rows : [];
+  deploymentRows(unit = null) {
+    const rows = Array.isArray(this.level.deployment?.rows) ? [...this.level.deployment.rows] : [];
+    const depth = evolutionCapabilitiesFor(unit).deploymentDepth;
+    if (!Number.isInteger(depth) || depth < 1) return rows;
+    const size = this.level.board.size ?? 8;
+    const advancedRows = unit.team === 'enemy'
+      ? Array.from({ length: depth }, (_, index) => index)
+      : Array.from({ length: depth }, (_, index) => size - 1 - index);
+    return [...new Set([...rows, ...advancedRows])];
   }
 
   deploymentUnits() {
@@ -116,11 +191,11 @@ export class GameState {
     return this.units.filter(unit => this.active(unit) && unit.team === team);
   }
 
-  isDeploymentCell(x, y) {
+  isDeploymentCell(x, y, unit = null) {
     const size = this.level.board.size ?? 8;
     return Number.isInteger(x) && Number.isInteger(y) &&
       x >= 0 && x < size && y >= 0 && y < size &&
-      this.deploymentRows().includes(y);
+      this.deploymentRows(unit).includes(y);
   }
 
   deploymentCellBlocked(x, y, ignoredUnitId = null) {
@@ -131,7 +206,7 @@ export class GameState {
 
   canDeployAt(unit, x, y) {
     if (!this.isDeploying() || !unit || unit.team !== this.deploymentTeam()) return false;
-    if (!this.isDeploymentCell(x, y)) return false;
+    if (!this.isDeploymentCell(x, y, unit)) return false;
     return !this.deploymentCellBlocked(x, y, unit.id);
   }
 
@@ -145,7 +220,7 @@ export class GameState {
   deploymentComplete() {
     const units = this.deploymentUnits();
     if (!units.length) return false;
-    if (!units.every(unit => this.isDeploymentCell(unit.x, unit.y) && !this.deploymentCellBlocked(unit.x, unit.y, unit.id))) return false;
+    if (!units.every(unit => this.isDeploymentCell(unit.x, unit.y, unit) && !this.deploymentCellBlocked(unit.x, unit.y, unit.id))) return false;
     const occupiedCells = new Set(units.map(unit => `${unit.x},${unit.y}`));
     return occupiedCells.size === units.length;
   }
@@ -181,8 +256,12 @@ export class GameState {
     return completeUnitMove(this, this.level, unit, action);
   }
 
-  resolveEvolution(unit, event) {
-    return applyEvolutionEvent({ state: this, level: this.level, unit, event });
+  rejectAttack(attacker, target) {
+    return applyRookShieldRejection(this, this.level, attacker, target);
+  }
+
+  swapRoyalPair(first, second) {
+    return applyRoyalSwap(this, first, second);
   }
 
   changeTurn() {

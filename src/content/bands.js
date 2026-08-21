@@ -6,11 +6,11 @@ export const FACINGS = Object.freeze({
 });
 
 export const PIECES = Object.freeze({
-  king: Object.freeze({ name: 'Rey', fallbackGlyph: '♚', moveProfile: 'king' }),
-  queen: Object.freeze({ name: 'Reina', fallbackGlyph: '♛', moveProfile: 'queen' }),
-  bishop: Object.freeze({ name: 'Alfil', fallbackGlyph: '♝', moveProfile: 'diagonal' }),
-  knight: Object.freeze({ name: 'Caballo', fallbackGlyph: '♞', moveProfile: 'knight' }),
-  rook: Object.freeze({ name: 'Torre', fallbackGlyph: '♜', moveProfile: 'orthogonal' }),
+  king: Object.freeze({ name: 'Rey', fallbackGlyph: '♚', moveProfile: 'king', evolutionProfile: 'royal' }),
+  queen: Object.freeze({ name: 'Reina', fallbackGlyph: '♛', moveProfile: 'queen', evolutionProfile: 'royal' }),
+  bishop: Object.freeze({ name: 'Alfil', fallbackGlyph: '♝', moveProfile: 'diagonal', evolutionProfile: 'bishop' }),
+  knight: Object.freeze({ name: 'Caballo', fallbackGlyph: '♞', moveProfile: 'knight', evolutionProfile: 'knight' }),
+  rook: Object.freeze({ name: 'Torre', fallbackGlyph: '♜', moveProfile: 'orthogonal', evolutionProfile: 'rook' }),
   pawn: Object.freeze({ name: 'Peón', fallbackGlyph: '♟', moveProfile: 'pawn', evolutionProfile: 'pawn' })
 });
 

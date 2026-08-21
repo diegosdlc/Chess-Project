@@ -33,6 +33,7 @@ Each generated unit receives:
 - its `facing` on the board;
 - the plain Spanish piece name and chess glyph;
 - its shared movement profile;
+- its evolution profile and current evolution stage;
 - the coordinates supplied by the level.
 
 `team`, `faction` and `facing` are intentionally independent. A piece can change controlling band or turn around without changing its faction identity or artwork family.
@@ -139,7 +140,7 @@ Because facing is part of the serialized unit state, orientation persists automa
 
 `GameSessionStore` validates the player faction against `PLAYER_FACTION_IDS` before allowing **Continuar partida**.
 
-The session schema is version `3`. Version `2` snapshots are intentionally ignored because their units do not contain explicit facing. A schema-compatible snapshot without a `phase` field is treated as normal play for backward compatibility with the pre-deployment version of schema 3. The legacy browser-storage key itself remains unchanged.
+The session schema is version `5`. Older snapshots are intentionally ignored because they do not contain the complete evolution-use state required for Torre+ and the shared royal swap. The legacy browser-storage key itself remains unchanged.
 
 ## Relevant files
 

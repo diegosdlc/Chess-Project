@@ -63,16 +63,21 @@ The reusable mechanics-lab framework is on `main`.
 
 See `docs/MECHANICS_LABS.md` and `docs/FACING_LAB.md`.
 
-### Piece evolution
+### Piece evolution and level 2
 
-The generic evolution framework and first pawn profile are implemented.
+All current piece evolutions and the first carried-band transition are implemented.
 
-- Units declare an evolution profile and persist `base` / `evolved` state.
-- Profiles own their activation condition and evolved capabilities; other pieces can add different profiles without adding piece-specific branches to the controller or AI.
-- Pawns evolve on reaching the opposite board edge, then move one cell in either vertical direction and capture on all four adjacent diagonals.
-- Human moves, captures and AI simulations apply the same evolution event.
+- Surviving player pieces and recruited prisoners form the next campaign band; destroyed pieces and player prisoners are removed.
+- Eligible pieces that already belonged to the band evolve between encounters. New recruits join without evolving and become eligible after surviving a later encounter. Rey+ and Reina+ require both members to survive.
+- Peons also evolve immediately when they reach the opposite board edge.
+- Peón+ moves both ways and captures on four diagonals.
+- Caballo+ deploys in the first four friendly rows.
+- Alfil+ may rebound once from a non-corner edge in one movement.
+- Torre+ rejects the first attack it receives each encounter.
+- Rey+ and Reina+ share one position exchange per encounter.
+- `tutorial-01` unlocks `tutorial-02`, which reuses the first encounter configuration with the carried player roster.
+- Progression persists the carried band; session schema version `5` persists consumable evolution state.
 - Evolved units display a temporary star marker.
-- Session schema version `4` persists evolution state.
 
 See `docs/EVOLUTION.md`.
 

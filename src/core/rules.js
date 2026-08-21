@@ -1,4 +1,4 @@
-import { moveProfileFor } from './evolution.js';
+import { moveProfileFor } from './evolution.js?v=20260821-evolution-3';
 
 export function inside(level, x, y) {
   const size = level.board.size ?? 8;
@@ -38,6 +38,49 @@ function validLineMoves(state, level, unit, directions) {
       const option = squareOption(state, level, unit, x, y);
       if (option) moves.push(option);
       if (blocksLineMovement(state, level, x, y)) break;
+    }
+  }
+
+  return moves;
+}
+
+function validBouncingDiagonalMoves(state, level, unit) {
+  const moves = [];
+  const seen = new Set();
+  const last = (level.board.size ?? 8) - 1;
+
+  for (const [initialDx, initialDy] of DIAGONAL_DIRECTIONS) {
+    let x = unit.x;
+    let y = unit.y;
+    let dx = initialDx;
+    let dy = initialDy;
+    let bounced = false;
+
+    while (true) {
+      x += dx;
+      y += dy;
+      if (!inside(level, x, y)) break;
+
+      const option = squareOption(state, level, unit, x, y);
+      if (option) {
+        const key = `${option.kind}:${x},${y}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          moves.push(option);
+        }
+      }
+      if (blocksLineMovement(state, level, x, y)) break;
+
+      const touchesVerticalEdge = x === 0 || x === last;
+      const touchesHorizontalEdge = y === 0 || y === last;
+      if (!bounced && (touchesVerticalEdge || touchesHorizontalEdge)) {
+        if (touchesVerticalEdge && touchesHorizontalEdge) break;
+        if (touchesVerticalEdge) dx *= -1;
+        if (touchesHorizontalEdge) dy *= -1;
+        bounced = true;
+      } else if (bounced && (touchesVerticalEdge || touchesHorizontalEdge)) {
+        break;
+      }
     }
   }
 
@@ -101,24 +144,45 @@ function pawnMoves(state, level, unit, evolved = false) {
 export function optionsFor(state, level, unit) {
   if (!unit || !state.active(unit) || unit.team !== state.currentTurn) return [];
 
+  let moves;
   switch (moveProfileFor(unit)) {
     case 'orthogonal':
-      return validLineMoves(state, level, unit, ORTHOGONAL_DIRECTIONS);
+      moves = validLineMoves(state, level, unit, ORTHOGONAL_DIRECTIONS);
+      break;
     case 'diagonal':
-      return validLineMoves(state, level, unit, DIAGONAL_DIRECTIONS);
+      moves = validLineMoves(state, level, unit, DIAGONAL_DIRECTIONS);
+      break;
+    case 'evolved-bishop':
+      moves = validBouncingDiagonalMoves(state, level, unit);
+      break;
     case 'queen':
-      return validLineMoves(state, level, unit, ALL_DIRECTIONS);
+      moves = validLineMoves(state, level, unit, ALL_DIRECTIONS);
+      break;
     case 'king':
-      return validStepMoves(state, level, unit, ALL_DIRECTIONS);
+      moves = validStepMoves(state, level, unit, ALL_DIRECTIONS);
+      break;
     case 'knight':
-      return validStepMoves(state, level, unit, KNIGHT_OFFSETS);
+      moves = validStepMoves(state, level, unit, KNIGHT_OFFSETS);
+      break;
     case 'pawn':
-      return pawnMoves(state, level, unit);
+      moves = pawnMoves(state, level, unit);
+      break;
     case 'evolved-pawn':
-      return pawnMoves(state, level, unit, true);
+      moves = pawnMoves(state, level, unit, true);
+      break;
     default:
-      return [];
+      moves = [];
   }
+
+  const royalPartnerType = unit.pieceType === 'king' ? 'queen' : unit.pieceType === 'queen' ? 'king' : null;
+  const royalPartner = royalPartnerType && state.units.find(piece =>
+    state.active(piece) && piece.team === unit.team && piece.pieceType === royalPartnerType
+  );
+  if (royalPartner && (state.teamEvolution?.[unit.team]?.royalSwapCharges ?? 0) > 0 &&
+      unit.evolutionStage === 'evolved' && royalPartner.evolutionStage === 'evolved') {
+    moves.push({ x: royalPartner.x, y: royalPartner.y, kind: 'royal-swap', targetId: royalPartner.id });
+  }
+  return moves;
 }
 
 export function legalActionsFor(state, level) {
@@ -127,7 +191,9 @@ export function legalActionsFor(state, level) {
     if (!state.active(unit) || unit.team !== state.currentTurn) continue;
 
     for (const option of optionsFor(state, level, unit)) {
-      if (option.kind === 'capture') {
+      if (option.kind === 'royal-swap') {
+        actions.push({ unitId: unit.id, targetId: option.targetId, kind: 'royal-swap', x: option.x, y: option.y });
+      } else if (option.kind === 'capture') {
         const target = state.activeAt(option.x, option.y);
         if (!target) continue;
         actions.push({ unitId: unit.id, targetId: target.id, kind: 'capture', x: option.x, y: option.y });

@@ -1,6 +1,6 @@
 import { cellBox, insetBox, place } from '../core/geometry.js';
-import { optionsFor } from '../core/rules.js';
-import { isEvolved } from '../core/evolution.js';
+import { optionsFor } from '../core/rules.js?v=20260821-evolution-3';
+import { evolutionCapabilitiesFor, isEvolved } from '../core/evolution.js?v=20260821-evolution-3';
 
 export class BoardRenderer {
   constructor({ board, level, state, assets, onCellClick, onCaptureAction }) {
@@ -54,9 +54,9 @@ export class BoardRenderer {
     cell.setAttribute('aria-label', `Casilla ${x + 1},${y + 1}`);
     place(cell, box, this.projection);
 
-    if (this.state.isDeploying?.() && this.state.isDeploymentCell(x, y)) {
-      cell.classList.add('deployment-zone');
+    if (this.state.isDeploying?.()) {
       const selected = this.state.selected();
+      if (this.state.isDeploymentCell(x, y, selected)) cell.classList.add('deployment-zone');
       if (selected && this.state.canDeployAt(selected, x, y)) cell.classList.add('deployment-target');
     }
 
@@ -96,7 +96,9 @@ export class BoardRenderer {
     piece.type = 'button';
     piece.className = `unit ${unit.id === this.state.selectedId ? 'selected' : ''} ${this.state.pendingCapture?.targetId === unit.id ? 'awaiting-capture' : ''}`;
     piece.classList.toggle('evolved', isEvolved(unit));
-    piece.setAttribute('aria-label', `${unit.name}${isEvolved(unit) ? ', evolucionada' : ''}`);
+    const shieldReady = evolutionCapabilitiesFor(unit).rejectsFirstAttack && (unit.evolutionState?.shieldCharges ?? 0) > 0;
+    piece.classList.toggle('shield-ready', shieldReady);
+    piece.setAttribute('aria-label', `${unit.name}${isEvolved(unit) ? ', evolucionada' : ''}${shieldReady ? ', escudo disponible' : ''}`);
     this.applyFactionPalette(piece, unit);
 
     const fallback = document.createElement('span');
