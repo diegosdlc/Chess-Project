@@ -1,24 +1,30 @@
 import { evolveSurvivingBand } from './evolution.js?v=20260821-evolution-3';
 
-export function buildNextPlayerBand(units, levelId) {
-  const survivors = units.filter(unit => !unit.captured && !unit.destroyed && unit.team === 'player');
-  const recruits = units.filter(unit => unit.captured && !unit.destroyed && unit.capturedBy === 'player');
-  const evolvedSurvivors = evolveSurvivingBand(survivors.map(unit => ({
+function carryUnit(unit) {
+  const carried = {
     ...unit,
     captured: false,
     destroyed: false,
     capturedBy: null,
     evolutionState: undefined
-  })));
+  };
+  delete carried.inReserve;
+  return carried;
+}
+
+export function buildNextPlayerBand(units, levelId) {
+  const participatingSurvivors = units.filter(unit => !unit.inReserve && !unit.captured && !unit.destroyed && unit.team === 'player');
+  const reserve = units.filter(unit => unit.inReserve && !unit.captured && !unit.destroyed && unit.team === 'player');
+  const recruits = units.filter(unit => unit.captured && !unit.destroyed && unit.capturedBy === 'player');
+
+  const evolvedSurvivors = evolveSurvivingBand(participatingSurvivors.map(carryUnit));
+  const carriedReserve = reserve.map(carryUnit);
   const newRecruits = recruits.map(unit => ({
-    ...unit,
+    ...carryUnit(unit),
     id: `player-recruit-${levelId}-${unit.id}`,
     team: 'player',
-    captured: false,
-    destroyed: false,
-    capturedBy: null,
-    recruitedBy: 'player',
-    evolutionState: undefined
+    recruitedBy: 'player'
   }));
-  return [...evolvedSurvivors, ...newRecruits];
+
+  return [...evolvedSurvivors, ...carriedReserve, ...newRecruits];
 }
