@@ -113,6 +113,7 @@ export class GameState {
     }));
     this.selectedId = null;
     this.currentTurn = 'player';
+    this.roundsElapsed = 0;
     this.finished = false;
     this.pendingCapture = null;
     this.phase = this.level.deployment ? 'deployment' : 'play';
@@ -277,6 +278,7 @@ export class GameState {
     if (!this.isDeploying() || this.selected()?.inReserve || !this.deploymentComplete()) return false;
     this.phase = 'play';
     this.currentTurn = 'player';
+    this.roundsElapsed = 0;
     this.teamEvolution = createTeamEvolutionState(this.units.filter(unit => this.active(unit)));
     this.clearSelection();
     return true;
@@ -315,6 +317,8 @@ export class GameState {
 
   changeTurn() {
     if (this.level.behavior?.beforeChangeTurn?.({ state: this }) === false) return;
+    const completedRound = this.currentTurn === 'enemy';
     this.currentTurn = NEXT_TEAM[this.currentTurn];
+    if (completedRound) this.roundsElapsed += 1;
   }
 }
