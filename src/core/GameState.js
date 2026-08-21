@@ -5,6 +5,7 @@ import {
   initialEvolutionState,
   normalizeEvolutionStage
 } from './evolution.js?v=20260821-evolution-3';
+import { pointCostForUnit } from '../content/balance.js?v=20260821-budget-1';
 
 const NEXT_TEAM = Object.freeze({ player: 'enemy', enemy: 'player' });
 const OPPOSITE_FACING = Object.freeze({ north: 'south', south: 'north' });
@@ -34,7 +35,7 @@ export function completeUnitMove(state, level, unit, action) {
 }
 
 function activeUnit(unit) {
-  return Boolean(unit && !unit.captured && !unit.destroyed);
+  return Boolean(unit && !unit.captured && !unit.destroyed && !unit.inReserve);
 }
 
 function releaseFriendlyPrisoners(state, x, y, team) {
@@ -104,6 +105,7 @@ export class GameState {
       ...unit,
       evolutionStage: normalizeEvolutionStage(unit),
       evolutionState: initialEvolutionState(unit),
+      inReserve: false,
       captured: false,
       destroyed: false,
       capturedBy: null,
@@ -114,21 +116,24 @@ export class GameState {
     this.finished = false;
     this.pendingCapture = null;
     this.phase = this.level.deployment ? 'deployment' : 'play';
-    this.teamEvolution = createTeamEvolutionState(this.units);
 
     if (this.isDeploying()) {
       const team = this.deploymentTeam();
+      const usesBudget = this.deploymentPointLimit() != null;
       this.units
         .filter(unit => unit.team === team)
         .forEach(unit => {
           unit.x = null;
           unit.y = null;
+          unit.inReserve = usesBudget;
         });
     }
+
+    this.teamEvolution = createTeamEvolutionState(this.units.filter(unit => !unit.inReserve));
   }
 
   active(unit) {
-    return Boolean(unit && !unit.captured && !unit.destroyed);
+    return Boolean(unit && !unit.captured && !unit.destroyed && !unit.inReserve);
   }
 
   activeAt(x, y) {
@@ -175,6 +180,36 @@ export class GameState {
     return this.level.deployment?.team ?? 'player';
   }
 
+  deploymentPointLimit() {
+    const limit = this.level.deployment?.pointLimit;
+    return Number.isFinite(limit) && limit > 0 ? limit : null;
+  }
+
+  deploymentRoster() {
+    const team = this.deploymentTeam();
+    return this.units.filter(unit => unit.team === team && !unit.captured && !unit.destroyed);
+  }
+
+  deploymentUnitCost(unit) {
+    return pointCostForUnit(unit);
+  }
+
+  deploymentPointsSpent() {
+    return this.deploymentUnits().reduce((total, unit) => total + this.deploymentUnitCost(unit), 0);
+  }
+
+  deploymentPointsRemaining() {
+    const limit = this.deploymentPointLimit();
+    return limit == null ? Infinity : Math.max(0, limit - this.deploymentPointsSpent());
+  }
+
+  canAffordDeploymentUnit(unit) {
+    if (!unit || unit.team !== this.deploymentTeam()) return false;
+    if (!unit.inReserve) return true;
+    const limit = this.deploymentPointLimit();
+    return limit == null || this.deploymentPointsSpent() + this.deploymentUnitCost(unit) <= limit;
+  }
+
   deploymentRows(unit = null) {
     const rows = Array.isArray(this.level.deployment?.rows) ? [...this.level.deployment.rows] : [];
     const depth = evolutionCapabilitiesFor(unit).deploymentDepth;
@@ -206,29 +241,43 @@ export class GameState {
 
   canDeployAt(unit, x, y) {
     if (!this.isDeploying() || !unit || unit.team !== this.deploymentTeam()) return false;
+    if (unit.inReserve && !this.canAffordDeploymentUnit(unit)) return false;
     if (!this.isDeploymentCell(x, y, unit)) return false;
     return !this.deploymentCellBlocked(x, y, unit.id);
   }
 
   placeDeploymentUnit(unit, x, y) {
     if (!this.canDeployAt(unit, x, y)) return false;
+    unit.inReserve = false;
     unit.x = x;
     unit.y = y;
+    return true;
+  }
+
+  reserveDeploymentUnit(unit) {
+    if (!this.isDeploying() || !unit || unit.team !== this.deploymentTeam()) return false;
+    unit.inReserve = true;
+    unit.x = null;
+    unit.y = null;
+    if (this.selectedId === unit.id) this.clearSelection();
     return true;
   }
 
   deploymentComplete() {
     const units = this.deploymentUnits();
     if (!units.length) return false;
+    const limit = this.deploymentPointLimit();
+    if (limit != null && this.deploymentPointsSpent() > limit) return false;
     if (!units.every(unit => this.isDeploymentCell(unit.x, unit.y, unit) && !this.deploymentCellBlocked(unit.x, unit.y, unit.id))) return false;
     const occupiedCells = new Set(units.map(unit => `${unit.x},${unit.y}`));
     return occupiedCells.size === units.length;
   }
 
   beginPlay() {
-    if (!this.isDeploying() || !this.deploymentComplete()) return false;
+    if (!this.isDeploying() || this.selected()?.inReserve || !this.deploymentComplete()) return false;
     this.phase = 'play';
     this.currentTurn = 'player';
+    this.teamEvolution = createTeamEvolutionState(this.units.filter(unit => this.active(unit)));
     this.clearSelection();
     return true;
   }
