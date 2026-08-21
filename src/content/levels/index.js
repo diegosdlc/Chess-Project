@@ -10,6 +10,12 @@ import {
   scenarioSurvive
 } from './scenarios.js?v=20260822-victory-1';
 
+const SCENARIOS = Object.freeze([
+  scenarioCaptureKing,
+  scenarioEscortKing,
+  scenarioSurvive
+]);
+
 const LEVEL_FACTORIES = new Map([
   [tutorial01.id, createTutorial01],
   [tutorial02.id, createTutorial02],
@@ -31,6 +37,10 @@ export function listLevels() {
 }
 
 export { listMechanicLabs };
+
+export function listScenarioLevels() {
+  return SCENARIOS.map(level => ({ id: level.id, name: level.name }));
+}
 
 export function getNextLevel(level, options = {}) {
   return level?.nextLevelId ? getLevel(level.nextLevelId, {
