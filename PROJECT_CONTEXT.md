@@ -1,154 +1,123 @@
 # Turn Over — Shared Project Context
 
-This document is the durable context for development of **Turn Over** across different ChatGPT environments and devices.
+This document is the durable development context for **Turn Over** across local and cloud environments.
 
-## Naming
+## Naming and source of truth
 
-**Turn Over** is the official product/game name. Use it in player-facing copy, documentation, release notes and future assets.
+**Turn Over** is the official product/game name. Historical working names such as **Bandas del Tablero** and **Chess Project** are not product names.
 
-Historical working names such as **Bandas del Tablero** and **Chess Project** should no longer be used as product names. The canonical repository is `diegosdlc/Turn-Over`; the former `diegosdlc/Chess-Project` URL redirects to it. Existing browser-storage identifiers using `bandas-del-tablero:*` or `chess-project-*` are legacy technical identifiers that should remain unchanged until an explicit migration is implemented.
-
-## Source of truth
-
-**GitHub is the single source of truth for code, assets, project documentation and current work state.**
+**GitHub is the single source of truth** for code, assets and project documentation.
 
 Repository: `diegosdlc/Turn-Over`  
 Default branch: `main`
 
-Do not treat a ChatGPT conversation, a Windows checkout, an Android/cloud session, or an unpushed local file as authoritative. Durable decisions must end up in this repository.
-
-Before changing code, read this file, `CURRENT_WORK.md`, `README.md`, and the relevant source files. If conversation context conflicts with the repository, inspect Git history/current code and resolve the discrepancy explicitly rather than silently assuming the conversation is newer.
+Before changing code, read `PROJECT_CONTEXT.md`, `CURRENT_WORK.md`, `README.md`, the relevant contract in `docs/`, and the current implementation. If conversation history conflicts with GitHub, resolve the discrepancy from the repository and Git history.
 
 ## Product direction
 
-The project started as a lightweight chess-derived browser game and is evolving into a more complete game with custom rules and content. The architecture should support:
+Turn Over is a browser strategy game derived from chess vocabulary but governed by custom rules. The architecture should support:
 
-- multiple levels with declarative starting positions, deployment zones and level-specific configuration;
-- custom artwork for different factions, piece types and piece facing;
-- board artwork independent from game geometry;
-- obstacles, props and special board cells;
-- music and sound assets;
-- tutorial tooltips anchored to pieces, cells or the board;
-- campaign/progression state;
-- reusable AI whose difficulty can increase between levels;
+- multiple data-driven levels;
+- custom board, faction, piece and board-element assets;
+- faction-specific front/back piece artwork;
+- deployment zones and lineup budgets;
+- obstacles and special cells;
+- music and tutorial UI;
+- persistent campaign rosters and evolution;
+- reusable AI over shared legal moves;
 - reusable mechanics-lab levels for isolated testing;
-- future new piece types and rule changes without rewriting the AI from scratch.
+- future piece/rule additions without rewriting the AI.
 
-Keep game rules/state separate from rendering whenever practical. The UI should consume the rules engine rather than duplicate movement logic.
+Keep authoritative rules/state separate from rendering and UI whenever practical.
 
 ## Current architecture
 
-The repository currently uses a data-driven browser architecture with no required build step.
-
-Important areas:
-
-- `src/main.js` — application controller, lifecycle orchestration, deployment flow and turn resolution.
-- `src/core/` — game state, board geometry and movement/rules logic.
-- `src/ai/` — AI implementation. It consumes legal moves produced by the rules engine rather than maintaining a second set of chess rules.
-- `src/render/` — board, pieces and terrain rendering.
+- `src/main.js` — application controller, lifecycle orchestration, deployment UI and turn resolution.
+- `src/core/` — game state, geometry, movement rules, campaign transition and evolution mechanics.
+- `src/ai/` — reusable AI consuming the shared legal-action generator.
+- `src/render/` — board, piece and terrain rendering.
 - `src/systems/` — assets, audio, sessions, progression and tutorial systems.
-- `src/content/factions.js` — faction identity, special pieces, palettes and optional faction artwork definitions.
-- `src/content/bands.js` — shared piece catalogue, starting-band factory and `FACINGS`.
-- `src/content/levels/` — declarative production levels, shared board definitions and mechanics-lab scenarios.
-- `src/content/levels/labs/` — reusable mechanics-lab registry and lab-only behavior helpers.
+- `src/content/factions.js` — faction identity, special pieces, palettes and optional artwork definitions.
+- `src/content/bands.js` — piece catalogue, starting-band factory and `FACINGS`.
+- `src/content/balance.js` — runtime parser/helpers for editable piece costs and level point limits.
+- `src/content/levels/` — production levels, shared boards and mechanics-lab scenarios.
+- `src/content/levels/labs/` — mechanics-lab registry and test-only behavior helpers.
 - `src/level-ui.js` / `src/level-ui.css` — notebook navigation and in-level composition.
-- `src/deployment.css` — pre-match deployment presentation and deployment-zone feedback.
-- `assets/boards/` — board artwork.
-- `assets/pieces/` — optional faction/piece/facing artwork plus development placeholders.
-- `assets/music/` — music and sound effects.
-- `assets/board-elements/` — obstacles, props and special-tile artwork.
-
-See `README.md` for the repository's current concrete structure. When architecture changes materially, update both documents.
+- `src/deployment.css` — deployment/lineup presentation.
+- `assets/` — boards, menu art, pieces, music and board elements.
 
 Detailed contracts:
 
-- `docs/FACTIONS_AND_BANDS.md` — factions, starting bands, facing, artwork and session model.
-- `docs/DEPLOYMENT.md` — pre-match deployment lifecycle and validation.
-- `docs/MECHANICS_LABS.md` — reusable mechanics-lab workflow.
-- `docs/FACING_LAB.md` — current facing-lab purpose and test procedure.
-- `docs/EVOLUTION.md` — generic piece-evolution contract and pawn-evolution lab.
+- `docs/FACTIONS_AND_BANDS.md` — factions, bands, facing, artwork and persistence.
+- `docs/DEPLOYMENT.md` — deployment, lineup/reserve and point-budget lifecycle.
+- `docs/BALANCE.md` — runtime-editable base/evolved costs and per-level point limits.
+- `docs/EVOLUTION.md` — evolution and carried-roster rules.
+- `docs/MECHANICS_LABS.md` — reusable test-level workflow.
+- `docs/FACING_LAB.md` — facing-lab test procedure.
 
 ## Established game/design decisions
 
-These decisions come from the development history and should be preserved unless explicitly changed:
+1. This is **not standard chess**; project rules take precedence.
+2. Player and enemy pawns move in opposite directions and only use explicitly implemented pawn rules.
+3. Board artwork/projection and logical coordinates must remain aligned.
+4. Capture interaction uses contextual controls near the target piece.
+5. Real repository assets must remain loadable independently from rule logic.
+6. Level setup, assets, deployment, behavior hooks and difficulty should be data-driven.
+7. Human interaction and AI must consume the same authoritative legal-action generator.
+8. AI difficulty should be configurable per level without duplicating the AI.
+9. New pieces/rules should primarily extend the rules/move-generation layer.
+10. The game opens on a start screen and keeps in-progress session state separate from campaign progression.
+11. The UI language is paper-cut collage with pencil/handmade treatment.
+12. Playable factions are **Verde**, **Roja** and **Amarilla**; their special pieces are alfil, torre and caballo.
+13. A new starting band contains rey, reina, peón and the faction special piece. The tutorial opponent is always Verde.
+14. `team`, origin `faction` and `facing` are independent unit properties.
+15. Facing is explicit state (`north` / `south`) and changes only through explicit mechanics.
+16. Piece artwork may resolve as `faction -> pieceType -> facing`; CSS tokens remain the fallback.
+17. Levels may define pre-match deployment. Movement/AI/tutorial logic starts only after explicit deployment confirmation.
+18. Blocking `boardElements` are authoritative for both movement and deployment validity.
+19. Mechanics labs must use production engine operations and generic hooks, never hard-coded lab-id branches in core systems.
+20. Evolution is generic per-piece state shared by player rules, AI and persistence.
+21. Base pawns may evolve immediately at the opposite edge; other between-level evolution requires participation and survival in a victorious encounter.
+22. Campaign transitions preserve the complete player roster: participating survivors may evolve, reserve pieces carry forward unchanged, new prisoners join without evolving, and losses are removed.
+23. **Budgeted deployment chooses the encounter lineup from the carried roster.** Placed pieces consume points; reserve pieces are inactive and consume zero. The lineup may not exceed the level limit.
+24. Base/evolved piece costs and per-level point limits are balance data, not hard-coded rule constants. `docs/BALANCE.md` is the editable runtime source of truth.
+25. The intended level limit is equivalent to the enemy band's point value; the balance layer warns when an explicit level limit diverges from the calculated enemy value.
 
-1. This is **not standard chess**. Chess is the base vocabulary, but game-specific rules take precedence.
-2. Player and enemy pawns move in opposite directions.
-3. Pawns do not inherit standard-chess behavior automatically; movement/capture behavior must follow the project's implemented rules.
-4. The board uses custom artwork and game coordinates/movement must remain aligned with that artwork/projection.
-5. The intended play UI is deliberately minimal: the board/background and pieces are primary; avoid adding permanent informational chrome unless required by a level or tutorial.
-6. Capture interaction uses contextual controls emerging from/near the piece being captured rather than a conventional detached modal.
-7. Assets must be loadable as real repository files because future levels depend on custom board, faction, piece and board-element artwork.
-8. Level definitions should be able to supply their own starting state, assets, deployment and behavior hooks.
-9. The AI should be reusable across levels. Prefer generic legal-move generation + evaluation/search over hard-coding each level into the AI.
-10. AI difficulty should be tunable per level without duplicating the AI implementation.
-11. Adding a new piece/rule should primarily extend the rules/move-generation layer. The AI should automatically benefit from those legal moves where possible.
-12. The game opens on a start screen. In-progress sessions are persisted in browser local storage as a level id plus board state, active turn and lifecycle phase; selections and incomplete capture choices are intentionally transient. Completed matches clear that session, while campaign progression remains separate.
-13. The current UI language is paper-cut collage with pencil-like linework. Keep the game board and piece artwork data-driven.
-14. The official game name is **Turn Over**. Do not introduce new player-facing references to former working names.
-15. The factions use plain color names: **Verde**, **Roja** and **Amarilla**. Their special pieces are alfil, torre and caballo respectively.
-16. A starting band contains rey, reina, peón and the faction's special piece. The tutorial opponent is always a green starting band.
-17. The player chooses a faction before starting a new tutorial game. When both sides are green, the player's fallback palette is light and the AI's is dark.
-18. `team`, origin `faction` and `facing` are independent unit state. Current production factions can fall back to CSS chess tokens, while the artwork contract supports `faction -> pieceType -> facing` (`north` / `south`). Changing control must not silently change faction identity; changing facing must be explicit.
-19. Levels may define a pre-match deployment phase. The deployment team starts off-board, places every unit on valid configured deployment rows, and normal turn/AI/tutorial resolution begins only after explicit confirmation. Deployment validity belongs to `GameState`, respects blocking board elements and remains independent from faction identity and facing.
-20. Mechanics labs are development levels registered through a reusable registry. They must exercise the same engine operations as production gameplay and keep test-only behavior in level configuration/hooks rather than hard-coded level-id branches in core systems.
-21. Evolution is a generic per-piece profile system. Peons evolve immediately at the opposite edge; other eligible pieces evolve between encounters after surviving as existing members of the victorious player band. Rey and Reina require joint survival. Evolution stage and per-encounter uses are authoritative state shared by player rules, AI and persistence.
-22. Campaign level transitions preserve the complete player roster: active survivors evolve, then newly recruited prisoners join without evolving; destroyed units and player prisoners do not continue. A recruit becomes eligible after surviving a later encounter as a band member. Level factories receive this carried band rather than rebuilding a standard band.
+## No-legal-moves rule
 
-## Turn-blocking rule
-
-The agreed rule for positions with no legal moves is:
-
-- At the start of a turn, determine whether the active side has any legal move.
-- If it has at least one legal move, play continues normally.
-- If it has zero legal moves, that side **loses/passes its turn automatically**.
-- Before simply returning control, determine whether the other side can move.
-- If neither side has any legal move, the encounter ends in **draw**.
-- Display the message **`Tablas`**.
-- After the draw notification, restart the encounter from the level's initial state.
-- This behavior must be identical for the human player and AI.
-- Implement this at the game-rules/turn lifecycle level, not as an AI-only or UI-only workaround.
-- The reset must use the current level definition so deployment, pieces, facing, obstacles, special cells and rules are recreated consistently.
+At the start of a turn, if the active side has no legal move it automatically loses/passes that turn. If the other side also has no legal move, the encounter ends in **Tablas**. Reset must recreate the active level from its definition so deployment, facing, obstacles and future rules reset consistently.
 
 ## Development principles
 
 ### One rules engine
 
-Legal movement is authoritative. Rendering, interaction and AI should call the same movement/rules layer. Avoid separate human and AI interpretations of what is legal.
+Rendering, player interaction and AI should call the same movement/rules layer.
 
-### Data-driven levels
+### Data-driven levels and balance
 
-Prefer configuration/content files for level-specific setup, assets, deployment zones, behavior hooks and difficulty. Avoid scattering level IDs through core game logic.
+Prefer content/configuration for level setup, assets, deployment zones, behavior hooks and difficulty. Keep balance numbers in `docs/BALANCE.md`; do not scatter level-specific costs through rules/UI code.
 
 ### State is authoritative
 
-Gameplay-relevant properties such as unit control, faction identity, facing, captured/destroyed state and lifecycle phase belong to game state. Rendering should reflect them rather than infer hidden gameplay state from presentation.
+Gameplay properties such as team, faction, facing, evolution, reserve participation, capture/destruction and lifecycle phase belong to game state. Rendering reflects that state rather than inventing its own interpretation.
 
-### AI extensibility
+### Campaign roster vs encounter lineup
 
-Search/evaluation should operate on generic game states and legal successor states. New pieces may require evaluation tuning, but should not require rewriting the search algorithm merely to become movable.
+`ProgressionStore.playerBand` is the carried campaign roster. Budgeted deployment selects a temporary encounter lineup from it. Reserve pieces remain campaign-owned but are not active encounter pieces and do not evolve from an encounter they skipped.
 
 ### Reset from level definition
 
-Do not reset a game by manually reconstructing today's tutorial board. Recreate/clone the initial state from the active level definition so deployment, initial facing, obstacles and future level-specific content reset correctly.
+Do not reconstruct today's tutorial manually in UI/controller code. Reset from the current level definition.
 
 ### Mechanics labs stay isolated
 
-Test levels may add conveniences through generic lifecycle hooks, but production code must not acquire branches tied to individual lab ids. See `docs/MECHANICS_LABS.md`.
-
-### Minimal UI
-
-Keep permanent UI minimal. Temporary deployment/tutorial/status UI is acceptable when it communicates necessary state.
+Test-only conveniences live in lab content/behavior hooks, not production branches tied to lab ids.
 
 ## Cross-device workflow
 
-Development happens in two main environments:
+GitHub coordinates Windows/local and Android/cloud work.
 
-### Windows — local project
-
-The local checkout is the preferred environment for substantial implementation, refactors, running local servers/tests, inspecting multiple files and manipulating assets.
-
-At the beginning of a Windows session:
+At the start of local work:
 
 ```bash
 git status
@@ -156,74 +125,24 @@ git switch main
 git pull --ff-only origin main
 ```
 
-If there is unfinished work on another branch, do not discard it. Inspect `git status`, the branch and GitHub before switching.
-
-Create a focused branch for non-trivial work when appropriate:
-
-```bash
-git switch -c feature/<short-description>
-```
-
-Before ending the session, ensure valuable work is committed and pushed. Do not leave the only copy of important work on the PC.
-
-### Android — cloud project
-
-The cloud/Android environment works against the GitHub repository rather than a Windows filesystem. Before making changes, inspect the latest GitHub state and `CURRENT_WORK.md`.
-
-Do not assume that a Windows chat's conversational context is available. The repository documentation is the handoff mechanism.
-
-Any durable Android/cloud changes must be committed to GitHub. When returning to Windows, pull before continuing.
-
-## Git workflow
-
-GitHub coordinates both environments.
-
-Recommended rules:
-
-1. Start by synchronizing/reading GitHub.
-2. Keep `main` usable.
-3. Use focused branches for changes that benefit from review or involve multiple files/refactors.
-4. Use concise commits describing one coherent change.
-5. Push before changing device/environment.
-6. Pull/fetch before resuming work elsewhere.
-7. Never overwrite remote work merely because a local checkout is older.
-8. Resolve conflicts using the actual intent documented in `PROJECT_CONTEXT.md`, `CURRENT_WORK.md`, code and Git history.
-9. For tiny documentation corrections, direct commits to `main` are acceptable when intentional; substantive game changes should preferably use a branch/PR when the workflow permits.
+Use focused branches for substantive changes, keep commits coherent, push before changing environments, and never overwrite newer remote work merely because a local checkout is older.
 
 ## Session handoff protocol
 
-At the start of any ChatGPT coding session, the agent should:
+At the start of a coding session:
 
-1. Read `PROJECT_CONTEXT.md`.
-2. Read `CURRENT_WORK.md`.
-3. Read `README.md`.
-4. Inspect `git status`/current branch when local, or the current GitHub branch/commits when cloud-based.
-5. Inspect the relevant implementation before proposing architectural changes.
+1. read `PROJECT_CONTEXT.md`;
+2. read `CURRENT_WORK.md`;
+3. read `README.md`;
+4. inspect the current GitHub/local branch and latest commits;
+5. inspect the relevant implementation and contract docs.
 
-At the end of a session that changes the project, the agent should:
+At the end of a project change:
 
-1. Update code/assets.
-2. Run the relevant available validation.
-3. Update `CURRENT_WORK.md` if task status, decisions, blockers or next steps changed materially.
-4. Update `PROJECT_CONTEXT.md` if a durable product/architecture rule changed.
-5. Update the specific contract document when a system such as deployment, facing or mechanics labs changes materially.
-6. Commit with a meaningful message.
-7. Push to GitHub.
-8. Report the branch/commit/PR and any validation or remaining blocker.
-
-## Avoiding divergence
-
-- Never maintain separate "Windows rules" and "Android rules".
-- Never use chat history as the only record of an architectural decision.
-- Do not duplicate source files just to make one environment work.
-- Do not make an Android/cloud change based on an old snapshot when GitHub has newer commits.
-- Do not force-push over work from another environment unless explicitly resolving a known history problem.
-- If `CURRENT_WORK.md` says a task is in progress, inspect its branch/commit status before starting a second implementation.
-
-## Maintaining these docs
-
-`PROJECT_CONTEXT.md` contains durable context and decisions. Keep it concise enough to read at the start of a coding session.
-
-`CURRENT_WORK.md` contains the active implementation state, remaining gaps and immediate next steps. It is expected to change frequently.
-
-`README.md` remains the developer-facing overview of how the repository is structured and run.
+1. update code/assets;
+2. run available validation;
+3. update `CURRENT_WORK.md` for status/next steps;
+4. update `PROJECT_CONTEXT.md` for durable decisions;
+5. update the affected system contract(s);
+6. commit and push;
+7. report branch/commit/PR and validation.
