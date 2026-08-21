@@ -1,98 +1,83 @@
 # Turn Over
 
-A browser strategy game with data-driven levels, factions, deployment, campaign progression, evolution and mechanics-test levels. There is no build step: serve the repository with a static HTTP server and open `index.html`.
+Turn Over is a browser-based tactical board game built around chess-derived movement, faction-specific bands, capture/destroy choices, campaign recruitment, piece facing and persistent evolution.
 
-Do not open `index.html` directly with `file:///`; Chromium may block ES modules.
+The repository is intentionally framework-light: gameplay is implemented with native JavaScript modules, HTML and CSS so mechanics can be iterated quickly and deployed as a static site.
 
-## Project structure
+## Source of truth
 
-- `src/main.js` — application controller, deployment and turn lifecycle.
-- `src/core/` — game state, geometry, movement, evolution and campaign transition.
-- `src/ai/` — reusable AI over shared legal actions.
-- `src/render/` — board, piece and terrain rendering.
-- `src/systems/` — assets, audio, sessions, progression and tutorials.
-- `src/content/factions.js` — faction identity, palettes and optional artwork.
-- `src/content/bands.js` — piece catalogue, starting-band factory and facing constants.
-- `src/content/balance.js` — runtime parser/helpers for the editable point-balance table.
-- `src/content/levels/` — production levels and mechanics-lab scenarios.
-- `src/content/levels/labs/` — mechanics-lab registry and reusable test behavior.
-- `src/level-ui.js` / `src/level-ui.css` — notebook UI.
-- `src/deployment.css` — deployment/lineup UI and board-zone highlighting.
-- `assets/` — menu, board, piece, music and board-element assets.
-- `docs/` — durable system contracts and balance data.
+GitHub `main` is the canonical project state. Before implementation work, sync `main` and read:
 
-## Adding a level
+- `PROJECT_CONTEXT.md` for durable architecture/product decisions;
+- `CURRENT_WORK.md` for the current implementation baseline;
+- the relevant contract under `docs/`;
+- the source files for the subsystem being changed.
 
-1. Create a level factory in `src/content/levels/`.
-2. Give it a unique `id` and define its board, teams, units and optional content.
-3. Register normal campaign levels in `src/content/levels/index.js`.
-4. Set `nextLevelId` when a victory should unlock the next encounter.
-5. Add/verify the level point limit in `docs/BALANCE.md`.
+Do not treat an old local checkout or chat transcript as authoritative over the repository.
 
-Levels can define board artwork/projection, arbitrary units/factions, initial facing, deployment, music, blockers, special tiles, tutorial steps, behavior hooks, AI difficulty and campaign progression.
+## Running locally
 
-## Deployment, lineup and point budget
+Serve the repository through HTTP rather than opening `index.html` directly with `file:///`. Runtime balance data is loaded from `docs/BALANCE.md`, so a static HTTP server is required.
 
-A level can opt into deployment with configuration equivalent to:
+For example:
 
-```js
-deployment: {
-  team: 'player',
-  rows: [6, 7],
-  pointLimit: 18
-}
+```bash
+python -m http.server 8000
 ```
 
-For budgeted deployment, the complete carried player roster starts off-board. The player chooses the current encounter lineup by placing pieces. Every placed piece spends its point cost; pieces kept off-board are **reserve**, spend zero points and remain inactive for the encounter.
+Then open `http://localhost:8000/`.
 
-Placed pieces can be repositioned or **Retirar** to refund their cost. Occupied cells and blocking `boardElements` remain invalid deployment cells. Evolved Caballo+ may receive additional deployment rows through its evolution capability.
+## High-level structure
 
-**Iniciar partida** becomes available when at least one selected piece is validly placed and the lineup is within the level budget. The player does not need to spend every point.
+- `src/main.js` — app/encounter controller and UI orchestration.
+- `src/core/GameState.js` — encounter state, deployment lifecycle and reusable state operations.
+- `src/core/rules.js` — legal movement/action generation.
+- `src/core/evolution.js` — generic evolution capabilities and team-evolution state.
+- `src/core/campaign.js` — between-level carried-roster evolution/recruitment.
+- `src/ai/AIController.js` — minimax-style opponent using the shared rules/state contract.
+- `src/content/factions.js` — playable factions and art/palette metadata.
+- `src/content/bands.js` — chess-derived piece definitions and starting-band creation.
+- `src/content/balance.js` — runtime parser/accessor for editable point-balance data.
+- `src/content/levels/` — production encounters and mechanics labs.
+- `src/systems/ProgressionStore.js` — persistent campaign progression/carried band.
+- `src/systems/GameSessionStore.js` — resumable in-progress encounter snapshot.
+- `docs/BALANCE.md` — editable runtime source of truth for piece costs and level budgets.
 
-All base/evolved piece costs and per-level limits are edited in [`docs/BALANCE.md`](docs/BALANCE.md), which the browser reads at runtime. If a level is not listed, the balance layer falls back to the calculated enemy-band value; explicit limits are checked against that enemy value and warn when they diverge.
+## Current gameplay model
 
-See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+A new game begins by choosing Verde, Roja or Amarilla. Each starts with Rey, Reina, Peón and the faction's special piece (Alfil, Torre or Caballo respectively).
 
-## Current provisional balance
+Before budgeted encounters the player's complete carried roster starts in reserve. The player chooses which pieces participate, places them in legal deployment rows and spends the encounter's point budget. Base and evolved versions have separate costs configured in `docs/BALANCE.md`. Pieces left in reserve remain in the campaign but are inactive for that encounter.
 
-| Piece | Base | Evolved |
-| --- | ---: | ---: |
-| Peón | 2 | 3 |
-| Alfil | 4 | 6 |
-| Caballo | 4 | 6 |
-| Torre | 4 | 6 |
-| Reina | 7 | 9 |
-| Rey | 5 | 7 |
+Captured pieces are frozen prisoners on the board until resolved; capture/destroy remains an explicit choice. Blocking board elements are separate from frozen prisoners. The AI and human player use the same legal-action generator.
 
-The current tutorial enemy band is worth **18 points**, so levels 1 and 2 currently use an 18-point limit. These numbers are intentionally easy to iterate in `docs/BALANCE.md`.
+After a victorious encounter, participating survivors evolve according to their profiles and captured enemy survivors may join the carried roster. Reserve pieces carry forward unchanged rather than receiving evolution for encounters they skipped.
 
-## Factions, bands and facing
+## Piece evolution
 
-Playable factions are **Verde**, **Roja** and **Amarilla**. A new starting band contains rey, reina, peón and its faction special piece: alfil, torre or caballo respectively. The tutorial opponent is always Verde.
+The current complete evolution set is:
 
-Units keep `team`, origin `faction` and `facing` as independent state. Facing is `north` or `south` and does not automatically change on movement. Optional artwork resolves by faction, piece type and facing; production factions can fall back to CSS chess tokens.
-
-See [`docs/FACTIONS_AND_BANDS.md`](docs/FACTIONS_AND_BANDS.md).
-
-## Evolution and carried roster
-
-Evolution is a generic state/profile system. Peón+, Caballo+, Alfil+, Torre+ and the Rey+/Reina+ pair are implemented.
-
-A base pawn can evolve immediately at the opposite edge. Between victorious encounters, only pieces that **participated and survived** evolve. Pieces kept in deployment reserve carry forward unchanged. Newly recruited prisoners join without evolving and become eligible after participating in and surviving a later encounter.
-
-Evolution raises deployment cost through `docs/BALANCE.md`. A fully evolved four-piece default band currently exceeds the 18-point level-2 limit, so deployment becomes a real choice rather than automatically fielding every piece.
+- Peón+ — can move both vertical directions and capture on all four diagonals; a base pawn also evolves immediately on reaching the opposite edge.
+- Caballo+ — may deploy inside the first four friendly rows.
+- Alfil+ — may rebound once from a non-corner board edge.
+- Torre+ — rejects the first incoming attack of each encounter.
+- Rey+ / Reina+ — if both are evolved and active in the lineup, they may exchange positions once per encounter.
 
 See [`docs/EVOLUTION.md`](docs/EVOLUTION.md).
 
-## Obstacles
+## Deployment and balance
 
-Blocking `boardElements` participate in the shared movement rules and deployment validation. Sliding pieces stop at blockers, no unit may land on them, and knights can jump over them without landing on them. Human and AI use the same legal-action source.
+Budgeted deployment is declarative per level. `GameState` owns reserve participation, affordability, placement legality, refunds and the transition into play. Spending the entire allowance is optional, but at least one piece must participate.
+
+Costs and level limits live in [`docs/BALANCE.md`](docs/BALANCE.md). The JSON block inside that Markdown file is loaded by the game at runtime so balance iteration does not require editing gameplay code.
+
+See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ## Mechanics labs
 
 Registered mechanics labs are addressable with `?level=<lab-id>` and automatically appear under **Ajustes → Laboratorios de mecánicas**. Labs exercise the same engine operations as production gameplay and keep test-only behavior in generic level hooks.
 
-Current labs include `facing-lab` and `pawn-evolution-lab`.
+Current labs include `facing-lab`, `pawn-evolution-lab` and `deployment-budget-lab`. The deployment-budget lab exposes base and evolved versions of all six piece types with a 50-point allowance for rapid lineup/balance testing.
 
 See [`docs/MECHANICS_LABS.md`](docs/MECHANICS_LABS.md).
 
@@ -106,6 +91,7 @@ Session schema `6` saves in-progress units (including facing, evolution and rese
 
 - `?level=tutorial-01&tutorial=1` — force tutorial tooltips.
 - `?level=<level-id>` — open a normal level or mechanics lab directly.
+- `?level=deployment-budget-lab` — open the 50-point base/evolved deployment lab directly.
 - `?level=tutorial-02&faction=<green|red|yellow>` — direct evolved-band development shortcut when there is no saved carried roster.
 
 ## Project documentation
