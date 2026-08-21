@@ -20,6 +20,7 @@ The tabletop level UI is on `main`.
 - Fine music volume lives in the notebook settings page; the compact mute control bridges to the existing `AudioManager`.
 - The pause dialog currently blocks pointer interaction with the board, but AI timers/state are not yet paused at engine level.
 - During deployment, the notebook temporarily gives its content area to the deployment panel. After **Iniciar partida**, normal notebook content returns.
+- Deployment no longer locks the notebook tabs: **Banda** hosts piece placement while **Misión**, **Reglas** and **Ajustes** remain available. Long section content scrolls inside the paper area.
 
 ### Pre-match deployment
 

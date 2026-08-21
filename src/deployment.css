@@ -11,13 +11,12 @@
   box-shadow:0 0 0 2px rgba(255,255,245,.82) inset,0 0 0 4px rgba(47,92,52,.32);
 }
 
-.notebook-ui.is-deploying .notebook-page{
+.notebook-ui.is-deploying[data-notebook-section='band'] .notebook-page{
   visibility:hidden;
 }
 
-.notebook-ui.is-deploying .notebook-tabs{
-  opacity:.42;
-  pointer-events:none;
+.notebook-ui.is-deploying:not([data-notebook-section='band']) .deployment-panel{
+  display:none;
 }
 
 .deployment-panel{

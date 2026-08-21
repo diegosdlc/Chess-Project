@@ -59,6 +59,8 @@ When deployment is enabled, that team's pieces start off-board and are shown ove
 
 Once every deployment unit occupies a unique legal cell, **Iniciar partida** becomes available. Turn resolution, AI scheduling and tutorial progression begin only after confirmation.
 
+Deployment occupies the notebook's **Banda** section without locking navigation. **Misión**, **Reglas** and **Ajustes** remain available, and returning to **Banda** restores the current placement state. Sections that exceed the paper area scroll vertically.
+
 The tutorial uses the player's two nearest rows (`6` and `7`). Deployment state is included in the local session snapshot, so **Continuar partida** can resume an interrupted setup.
 
 See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for the full contract.

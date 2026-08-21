@@ -141,7 +141,22 @@
 
 .notebook-page-content{
   height:calc(100% - 34px);
-  overflow:hidden;
+  padding-right:8px;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(83,98,84,.62) rgba(132,112,77,.12);
+}
+
+.notebook-page-content::-webkit-scrollbar{width:7px}
+.notebook-page-content::-webkit-scrollbar-track{
+  background:rgba(132,112,77,.12);
+  border-radius:999px;
+}
+.notebook-page-content::-webkit-scrollbar-thumb{
+  background:rgba(83,98,84,.62);
+  border-radius:999px;
 }
 
 .notebook-pagination{

@@ -121,6 +121,12 @@ Tutorial steps do not render/advance during deployment. Tutorial progression sta
 
 Deployment happens before normal captures. The deployment validator works with active units and blocking board elements; it does not treat frozen-prisoner pass-through rules as deployment-placement rules.
 
+## Notebook access during deployment
+
+Deployment uses the **Banda** section of the notebook, but it does not lock notebook navigation. **Misión**, **Reglas** and **Ajustes** remain visible and interactive throughout setup. Returning to **Banda** restores the deployment panel with the current placement state intact.
+
+Notebook section content scrolls vertically when it exceeds the available paper area, so long settings and mechanics-lab lists remain reachable during deployment and normal play.
+
 ## Relevant files
 
 - `src/content/levels/tutorial-01.js` — current deployment configuration.

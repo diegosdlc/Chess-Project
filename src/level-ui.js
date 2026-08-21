@@ -85,8 +85,10 @@ class NotebookUI {
     const current = pages[this.page] ?? pages[0];
     if (!current) return;
 
+    this.root.dataset.notebookSection = this.section;
     this.tabs.forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.section === this.section)));
     this.pageContent.innerHTML = `<h2>${current.title}</h2>${current.html}`;
+    this.pageContent.scrollTop = 0;
     if (this.indicator) this.indicator.textContent = `${this.page + 1} / ${pages.length}`;
     if (this.previous) this.previous.disabled = this.page === 0;
     if (this.next) this.next.disabled = this.page >= pages.length - 1;
