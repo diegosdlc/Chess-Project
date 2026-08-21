@@ -19,7 +19,8 @@ Los valores actuales son un punto de partida de balance. Las tres piezas especia
   },
   "levelPointLimits": {
     "tutorial-01": 18,
-    "tutorial-02": 18
+    "tutorial-02": 18,
+    "deployment-budget-lab": 50
   }
 }
 ```
@@ -30,6 +31,8 @@ Los valores actuales son un punto de partida de balance. Las tres piezas especia
 El límite de cada nivel debe equivaler al valor en puntos de la banda rival. `levelPointLimit()` compara el límite configurado con el valor real de las unidades enemigas y muestra un aviso de consola si divergen. Esto permite detectar rápidamente que un cambio de coste necesita un ajuste de presupuesto.
 
 Con los valores actuales, la banda rival del tutorial (Rey + Reina + Peón + Alfil, todos base) vale **18 puntos**, por eso los dos niveles actuales tienen límite 18.
+
+Los laboratorios pueden usar un límite explícito distinto del valor de la banda rival cuando el objetivo sea probar una mecánica concreta. `deployment-budget-lab` usa **50 puntos** para permitir comparar libremente combinaciones de piezas base y evolucionadas.
 
 ## Evolución y coste
 
