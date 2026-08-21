@@ -1,16 +1,16 @@
 import { GAME_CONFIG } from './config/gameConfig.js';
 import { FACTIONS, PLAYER_FACTION_IDS } from './content/factions.js';
-import { getLevel, getNextLevel } from './content/levels/index.js?v=20260821-evolution-3';
-import { GameState } from './core/GameState.js?v=20260821-evolution-3';
+import { getLevel, getNextLevel } from './content/levels/index.js?v=20260821-budget-1';
+import { GameState } from './core/GameState.js?v=20260821-budget-1';
 import { AssetRegistry } from './systems/AssetRegistry.js';
 import { AudioManager } from './systems/AudioManager.js?v=20260814-1700';
 import { GameSessionStore } from './systems/GameSessionStore.js?v=20260821-evolution-3';
 import { ProgressionStore } from './systems/ProgressionStore.js?v=20260821-evolution-3';
 import { TutorialSystem } from './systems/TutorialSystem.js';
 import { BoardRenderer } from './render/BoardRenderer.js?v=20260821-evolution-3';
-import { AIController } from './ai/AIController.js?v=20260821-evolution-3';
+import { AIController } from './ai/AIController.js?v=20260821-budget-1';
 import { legalActionsFor } from './core/rules.js?v=20260821-evolution-3';
-import { buildNextPlayerBand } from './core/campaign.js?v=20260821-evolution-3';
+import { buildNextPlayerBand } from './core/campaign.js?v=20260821-budget-1';
 
 class GameApp {
   constructor() {
@@ -117,7 +117,6 @@ class GameApp {
   openSettings() {
     if (!this.settingsDialog.open) this.settingsDialog.showModal();
   }
-
   loadLevel(level, { forceTutorial = false, savedState = null } = {}) {
     if (!level) throw new Error('No hay ningún nivel disponible.');
     this.cancelAiTurn();
@@ -186,15 +185,24 @@ class GameApp {
     this.notebook?.classList.toggle('is-deploying', deploying);
     if (!deploying || !this.deploymentPieces) return;
 
+    const roster = this.state.deploymentRoster();
     const units = this.state.deploymentUnits();
-    const unplacedUnits = units.filter(unit => unit.x == null || unit.y == null);
+    const pointLimit = this.state.deploymentPointLimit();
+    const budgeted = pointLimit != null;
     this.deploymentPieces.replaceChildren();
 
-    for (const unit of unplacedUnits) {
+    for (const unit of roster) {
+      const card = document.createElement('div');
+      card.className = 'deployment-piece-card';
+
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = `deployment-piece ${unit.id === this.state.selectedId ? 'selected' : ''}`;
-      button.setAttribute('aria-label', `Colocar ${unit.name}`);
+      button.className = `deployment-piece ${unit.id === this.state.selectedId ? 'selected' : ''} ${unit.inReserve ? 'in-reserve' : 'in-lineup'}`;
+      const cost = this.state.deploymentUnitCost(unit);
+      const affordable = this.state.canAffordDeploymentUnit(unit);
+      button.disabled = Boolean(unit.inReserve && !affordable);
+      button.setAttribute('aria-pressed', String(!unit.inReserve));
+      button.setAttribute('aria-label', `${unit.inReserve ? 'Elegir' : 'Recolocar'} ${unit.name}, ${cost} puntos${unit.evolutionStage === 'evolved' ? ', evolucionada' : ''}`);
       this.applyDeploymentPalette(button, unit);
 
       const fallback = document.createElement('span');
@@ -214,28 +222,67 @@ class GameApp {
         button.classList.add('has-image');
       }
 
+      const costBadge = document.createElement('span');
+      costBadge.className = 'deployment-piece-cost';
+      costBadge.textContent = `${cost} pt${cost === 1 ? '' : 's'}`;
+      button.append(costBadge);
+
+      if (unit.evolutionStage === 'evolved') {
+        const evolved = document.createElement('span');
+        evolved.className = 'deployment-piece-evolved';
+        evolved.textContent = '+';
+        evolved.setAttribute('aria-hidden', 'true');
+        button.append(evolved);
+      }
+
       const name = document.createElement('span');
       name.className = 'deployment-piece-name';
       name.textContent = unit.name;
       button.append(name);
 
       button.addEventListener('click', () => {
-        this.state.setSelected(unit.id);
+        if (this.state.selectedId === unit.id) this.state.clearSelection();
+        else this.state.setSelected(unit.id);
         this.render();
       });
-      this.deploymentPieces.append(button);
+      card.append(button);
+
+      if (budgeted && !unit.inReserve) {
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'deployment-piece-remove';
+        remove.textContent = 'Retirar';
+        remove.setAttribute('aria-label', `Retirar ${unit.name} de la alineación`);
+        remove.addEventListener('click', () => {
+          if (!this.state.reserveDeploymentUnit(unit)) return;
+          this.saveSession();
+          this.render();
+        });
+        card.append(remove);
+      }
+
+      this.deploymentPieces.append(card);
     }
 
     const selected = this.state.selected();
-    const placed = units.length - unplacedUnits.length;
-    const complete = this.state.deploymentComplete();
+    const spent = this.state.deploymentPointsSpent();
+    const placed = units.filter(unit => unit.x != null && unit.y != null).length;
+    const complete = this.state.deploymentComplete() && !selected?.inReserve;
+    const budgetText = budgeted ? `${spent}/${pointLimit} pts` : `${placed}/${units.length}`;
+
     if (this.deploymentStatus) {
-      if (complete) {
-        this.deploymentStatus.textContent = 'Banda desplegada. Ya puedes iniciar la partida.';
+      if (selected?.inReserve) {
+        const cost = this.state.deploymentUnitCost(selected);
+        const afterPlacement = budgeted ? ` · quedarán ${pointLimit - spent - cost} pts` : '';
+        this.deploymentStatus.textContent = `Coloca ${selected.name} (${cost} pts) en una casilla resaltada${afterPlacement}. Banda: ${budgetText}.`;
+      } else if (complete) {
+        this.deploymentStatus.textContent = `Banda lista: ${units.length} pieza${units.length === 1 ? '' : 's'} · ${budgetText}. Ya puedes iniciar la partida.`;
       } else if (selected) {
-        this.deploymentStatus.textContent = `Coloca ${selected.name} en una casilla resaltada. ${placed}/${units.length}`;
+        this.deploymentStatus.textContent = `Recoloca ${selected.name} en una casilla resaltada. Banda: ${budgetText}.`;
+      } else if (budgeted) {
+        this.deploymentStatus.textContent = `Elige qué piezas participan y colócalas. Banda: ${budgetText} · quedan ${pointLimit - spent} pts.`;
       } else {
-        this.deploymentStatus.textContent = `Selecciona una pieza y colócala en una de tus dos primeras filas. ${placed}/${units.length}`;
+        this.deploymentStatus.textContent = `Selecciona una pieza y colócala en una casilla resaltada. ${placed}/${units.length}`;
       }
     }
     if (this.deploymentStart) this.deploymentStart.hidden = !complete;

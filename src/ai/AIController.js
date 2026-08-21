@@ -1,5 +1,5 @@
 import { legalActionsFor, optionsFor } from '../core/rules.js?v=20260821-evolution-3';
-import { applyRookShieldRejection, applyRoyalSwap, completeUnitMove } from '../core/GameState.js?v=20260821-evolution-3';
+import { applyRookShieldRejection, applyRoyalSwap, completeUnitMove } from '../core/GameState.js?v=20260821-budget-1';
 
 export class AIController {
   constructor(config = {}) {
@@ -137,7 +137,7 @@ function cloneState(state) {
     ...state,
     units,
     teamEvolution,
-    active(unit) { return Boolean(unit && !unit.captured && !unit.destroyed); },
+    active(unit) { return Boolean(unit && !unit.captured && !unit.destroyed && !unit.inReserve); },
     activeAt(x, y) { return this.units.find(unit => this.active(unit) && unit.x === x && unit.y === y) ?? null; },
     prisonersAt(x, y) { return this.units.filter(unit => unit.captured && !unit.destroyed && unit.x === x && unit.y === y); }
   };
