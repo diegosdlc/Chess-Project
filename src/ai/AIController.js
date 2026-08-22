@@ -22,6 +22,8 @@ export class AIController {
       captured: 0.65,
       mobility: 2,
       objective: 1,
+      prisonerSafety: 0.8,
+      rescuePotential: 0.55,
       ...(config.weights ?? {})
     };
   }
@@ -173,9 +175,57 @@ function evaluate(state, level, aiTeam, ai, result) {
     else if (unit.captured && !unit.destroyed) score -= sign * value * ai.weights.captured;
   }
 
+  score += prisonerPositionScore(state, level, aiTeam, ai);
   score += (mobilityFor(state, level, aiTeam) - mobilityFor(state, level, opponent)) * ai.weights.mobility;
   score += objectiveScoreFor(state, level, aiTeam) * ai.weights.objective;
   return score;
+}
+
+function prisonerPositionScore(state, level, aiTeam, ai) {
+  let score = 0;
+
+  for (const prisoner of state.units) {
+    if (!prisoner.captured || prisoner.destroyed || prisoner.x == null || prisoner.y == null) continue;
+
+    const prisonerValue = ai.values[prisoner.pieceType] ?? 250;
+    const captor = state.activeAt(prisoner.x, prisoner.y);
+    const owner = prisoner.team;
+    const capturingTeam = prisoner.capturedBy;
+
+    // A prisoner that can already be reached by its own side is much closer to returning
+    // than the flat captured-material score suggests.
+    if (canTeamReachSquare(state, level, owner, prisoner.x, prisoner.y, ['move-frozen'])) {
+      const recovery = prisonerValue * ai.weights.rescuePotential;
+      score += owner === aiTeam ? recovery : -recovery;
+    }
+
+    if (!captor || !capturingTeam || captor.team !== capturingTeam) continue;
+
+    // The key exchange pattern: if the opposing side can immediately capture the piece
+    // standing on its prisoner, the capture is insecure. Discount the prisoner and charge
+    // part of the exposed captor's value, because the following exchange tends to restore
+    // the frozen material instead of creating a durable material lead.
+    if (canTeamReachSquare(state, level, owner, captor.x, captor.y, ['capture'])) {
+      const captorValue = ai.values[captor.pieceType] ?? 250;
+      const risk = (prisonerValue + captorValue * 0.5) * ai.weights.prisonerSafety;
+      score += capturingTeam === aiTeam ? -risk : risk;
+    }
+  }
+
+  return score;
+}
+
+function canTeamReachSquare(state, level, team, x, y, kinds) {
+  const previousTurn = state.currentTurn;
+  state.currentTurn = team;
+  try {
+    return state.units.some(unit =>
+      state.active(unit) && unit.team === team &&
+      optionsFor(state, level, unit).some(option => option.x === x && option.y === y && kinds.includes(option.kind))
+    );
+  } finally {
+    state.currentTurn = previousTurn;
+  }
 }
 
 function mobilityFor(state, level, team) {
